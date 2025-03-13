@@ -8,8 +8,6 @@ class Node:
         self.state = state
         # The previous state, should be another object of the Node class
         self.parent = parent
-        # Calculate all the legal moves for each pieces
-        self.legal_moves()
 
     # Determine the legal moves for each piece
     def legal_moves(self):
@@ -21,13 +19,13 @@ class Node:
         redOccupancy = [elem[0] for elem in list(self.state[1].values())]
 
         # Iterate through the pieces and places of the pieces
-        for piece, place in self.state[0].items():
-            # All the legal movement (assuming king and jump)
-            moveList = [(place[0][0] - 1, place[0][1] + 1), (place[0][0] + 1, place[0][1] + 1), (place[0][0] - 2, place[0][1] + 2),
-                        (place[0][0] + 2, place[0][1] + 2)] if place[1] == "Man" else [(place[0][0] - 1, place[0][1] - 1),
-                        (place[0][0] - 1, place[0][1] + 1), (place[0][0] + 1, place[0][1] - 1), (place[0][0] + 1, place[0][1] + 1),
-                        (place[0][0] - 2, place[0][1] - 2), (place[0][0] - 2, place[0][1] + 2), (place[0][0] + 2, place[0][1] - 2),
-                        (place[0][0] + 2, place[0][1] + 2)]
+        for piece, (place, role) in self.state[0].items():
+            # All the legal movement
+            moveList = [(place[0] - 1, place[1] + 1), (place[0] + 1, place[1] + 1), (place[0] - 2, place[1] + 2),
+                        (place[0] + 2, place[1] + 2)] if role == "Man" else [(place[0] - 1, place[1] - 1),
+                        (place[0] - 1, place[1] + 1), (place[0] + 1, place[1] - 1), (place[0] + 1, place[1] + 1),
+                        (place[0] - 2, place[1] - 2), (place[0] - 2, place[1] + 2), (place[0] + 2, place[1] - 2),
+                        (place[0] + 2, place[1] + 2)]
 
             # Initialise tiles and counters
             tiles = []
@@ -58,12 +56,23 @@ class Node:
                     tiles.append((row, col))
 
             # Store the legal moves
-            self.legalMove[piece] = tiles
+            self.legalMove[piece] = [tiles, role]
 
     # Generate next states of the Node class
-    def generate_child(self, child):
+    def generate_child(self):
         # The initialisation next state
         children = []
+        self.legal_moves()
+
+        for piece, (move, role) in self.legalMove.items():
+            if len(move) == 0:
+                continue
+            for place in move:
+                newState = self.update_places(piece, place, role)
+                child_node = Node(newState, parent = self)
+                children.append(child_node)
+        
+        return children
         
 
     # Determining the best move for the current state
@@ -72,15 +81,18 @@ class Node:
         self.chosenMove = self.action["B12"][0]         # Example
     
     # Updating the placement given in the state
-    def update_places(self, piece, place):
+    def update_places(self, piece, place, role):
         newState = copy.deepcopy(self.state)
-        newState[0][piece] = place
+        newState[0][piece] = [place, role]
         return newState
 
 # The H-minimax strategy with aplha-beta pruning (https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning#Pseudocode)
 def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta = float('inf')):
+    # Generate the children of the node
+    children = node.generate_child()
+    
     # If the limited depth has been reached
-    if depth == 0 or not node.children:
+    if depth == 0 or len(children) == 0:
         # Evalute the heuristic value
         return len(node.state[0]) - len(node.state[1])
 
@@ -89,7 +101,7 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
         # Set alpha to -infinty
         value = float('-inf')
         # Go through every child in the state
-        for child in node.children:
+        for child in children:
             # Evaluate the childs minimax value decide the max value to set alpha
             eval = H_minimax(child, depth - 1, False, alpha, beta)
             value = max(value, eval)
@@ -128,6 +140,6 @@ if __name__ == "__main__":
 
     # The original node
     root = Node(start_place)
-    root.legal_moves()
-    print(root.legalMove)
+    child = root.generate_child()
+    print(child[2].state)
     
