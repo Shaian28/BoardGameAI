@@ -10,22 +10,46 @@ class Node:
         self.parent = parent
 
     # Determine the legal moves for each piece
-    def legal_moves(self):
+    def legal_moves(self, AI_turn = True):
         # Copy the current piece placement
         self.legalMove = copy.deepcopy(self.state[0])
 
         # Store the already occupied spaces
-        blackOccupancy = [elem[0] for elem in list(self.state[0].values())]
-        redOccupancy = [elem[0] for elem in list(self.state[1].values())]
+        blackOccupancy = [elem[0] for elem in list(self.state[0 if AI_turn else 1].values())]
+        redOccupancy = [elem[0] for elem in list(self.state[1 if AI_turn else 0].values())]
 
         # Iterate through the pieces and places of the pieces
-        for piece, (place, role) in self.state[0].items():
-            # All the legal movement
-            moveList = [(place[0] - 1, place[1] + 1), (place[0] + 1, place[1] + 1), (place[0] - 2, place[1] + 2),
-                        (place[0] + 2, place[1] + 2)] if role == "Man" else [(place[0] - 1, place[1] - 1),
-                        (place[0] - 1, place[1] + 1), (place[0] + 1, place[1] - 1), (place[0] + 1, place[1] + 1),
-                        (place[0] - 2, place[1] - 2), (place[0] - 2, place[1] + 2), (place[0] + 2, place[1] - 2),
-                        (place[0] + 2, place[1] + 2)]
+        for piece, (place, role) in self.state[0 if AI_turn else 1].items():
+            # When it is AI's turn
+            if AI_turn:
+                # All the legal movement for man
+                if role == "Man":
+                    moveList = [(place[0] - 1, place[1] + 1), (place[0] + 1, place[1] + 1),
+                                (place[0] - 2, place[1] + 2), (place[0] + 2, place[1] + 2)]
+                # All the legal movement for king
+                elif role == "King":
+                    moveList = [(place[0] - 1, place[1] - 1), (place[0] - 1, place[1] + 1),
+                                (place[0] + 1, place[1] - 1), (place[0] + 1, place[1] + 1),
+                                (place[0] - 2, place[1] - 2), (place[0] - 2, place[1] + 2),
+                                (place[0] + 2, place[1] - 2), (place[0] + 2, place[1] + 2)]
+                # All the legal movement for dead
+                else:
+                    moveList = []
+            # When it is the players turn
+            else:
+                # All the legal movement for man
+                if role == "Man":
+                    moveList = [(place[0] - 1, place[1] - 1), (place[0] + 1, place[1] - 1),
+                                (place[0] - 2, place[1] - 2), (place[0] + 2, place[1] - 2)]
+                # All the legal movement for king
+                elif role == "King":
+                    moveList = [(place[0] - 1, place[1] - 1), (place[0] - 1, place[1] + 1),
+                                (place[0] + 1, place[1] - 1), (place[0] + 1, place[1] + 1),
+                                (place[0] - 2, place[1] - 2), (place[0] - 2, place[1] + 2),
+                                (place[0] + 2, place[1] - 2), (place[0] + 2, place[1] + 2)]
+                # All the legal movement for dead
+                else:
+                    moveList = []
 
             # Initialise tiles and counters
             tiles = []
@@ -59,19 +83,27 @@ class Node:
             self.legalMove[piece] = [tiles, role]
 
     # Generate next states of the Node class
-    def generate_child(self):
+    def generate_child(self, AI_turn = True):
         # The initialisation next state
         children = []
-        self.legal_moves()
+        # Run all the legal moves
+        self.legal_moves(AI_turn)
 
+        # Go through all the legal moves done by the pieces
         for piece, (move, role) in self.legalMove.items():
+            # Continue if there is no legal moves for the piece
             if len(move) == 0:
                 continue
+            # Go through all the places, the legal moves brings the piece
             for place in move:
+                # Update the map to the new place
                 newState = self.update_places(piece, place, role)
+                # Create the child
                 child_node = Node(newState, parent = self)
+                # Append the child in the list
                 children.append(child_node)
         
+        # Return all the children of the node
         return children
         
 
@@ -82,14 +114,18 @@ class Node:
     
     # Updating the placement given in the state
     def update_places(self, piece, place, role):
+        # Make a copy of the state
         newState = copy.deepcopy(self.state)
+        # Place the new position and role
         newState[0][piece] = [place, role]
+
+        # Return the new state
         return newState
 
 # The H-minimax strategy with aplha-beta pruning (https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning#Pseudocode)
 def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta = float('inf')):
     # Generate the children of the node
-    children = node.generate_child()
+    children = node.generate_child(maximizingPlayer)
     
     # If the limited depth has been reached
     if depth == 0 or len(children) == 0:
