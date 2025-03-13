@@ -1,28 +1,81 @@
+import copy
+
 # Class for all nodes given to a state
 class Node:
     # Initialise the Node class
-    def __init__(self, state, parent = None, action = None):
+    def __init__(self, state, parent = None):
         # The current state, should be a dictionary for each piece location
         self.state = state
         # The previous state, should be another object of the Node class
         self.parent = parent
-        # The legal action that can be performed, should be a dictionary for each piece action
-        self.action = action
-        # The initialisation next state
-        self.children = []
+        # Calculate all the legal moves for each pieces
+        self.legal_moves()
 
-    # Add the next states of the Node class
-    def add_child(self, child):
-        # The next states, should be another object of the Node class
-        self.children.append(child)
+    # Determine the legal moves for each piece
+    def legal_moves(self):
+        # Copy the current piece placement
+        self.legalMove = copy.deepcopy(self.state[0])
+
+        # Store the already occupied spaces
+        blackOccupancy = [elem[0] for elem in list(self.state[0].values())]
+        redOccupancy = [elem[0] for elem in list(self.state[1].values())]
+
+        # Iterate through the pieces and places of the pieces
+        for piece, place in self.state[0].items():
+            # All the legal movement (assuming king and jump)
+            moveList = [(place[0][0] - 1, place[0][1] + 1), (place[0][0] + 1, place[0][1] + 1), (place[0][0] - 2, place[0][1] + 2),
+                        (place[0][0] + 2, place[0][1] + 2)] if place[1] == "Man" else [(place[0][0] - 1, place[0][1] - 1),
+                        (place[0][0] - 1, place[0][1] + 1), (place[0][0] + 1, place[0][1] - 1), (place[0][0] + 1, place[0][1] + 1),
+                        (place[0][0] - 2, place[0][1] - 2), (place[0][0] - 2, place[0][1] + 2), (place[0][0] + 2, place[0][1] - 2),
+                        (place[0][0] + 2, place[0][1] + 2)]
+
+            # Initialise tiles and counters
+            tiles = []
+            blackCounter = []
+            redCounter = []
+
+            # Iterate through the rows and coloumns of the piece
+            for idx, (row, col) in enumerate(moveList):
+                # Check if there is no wall blocking
+                if row > 0 and row < 8 and col > 0 and col < 8:
+                    # Ignore spaces with black pieces
+                    if (row, col) in blackOccupancy:
+                        blackCounter.append(idx)
+                        continue
+                    # Ignore spaces with red pieces
+                    elif (row, col) in redOccupancy:
+                        redCounter.append(idx)
+                        continue
+
+                    # Jump over a red pieces
+                    if idx > len(moveList) / 2 - 1 and idx - len(moveList) / 2 not in redCounter:
+                        continue
+                    # Don't jump over black pieces
+                    elif idx - len(moveList) / 2 in blackCounter:
+                        continue
+
+                    # Append the non-filtered tiles from move set
+                    tiles.append((row, col))
+
+            # Store the legal moves
+            self.legalMove[piece] = tiles
+
+    # Generate next states of the Node class
+    def generate_child(self, child):
+        # The initialisation next state
+        children = []
+        
 
     # Determining the best move for the current state
     def best_move(self):
-        return 0
+        self.chosenPiece = "B12"                        # Example
+        self.chosenMove = self.action["B12"][0]         # Example
     
     # Updating the placement given in the state
-    def updatePlaces(self):
-        return 0
+    def update_places(self, piece, place):
+        newState = copy.deepcopy(self.state)
+        newState[0][piece] = place
+        return newState
 
 # The H-minimax strategy with aplha-beta pruning (https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning#Pseudocode)
 def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta = float('inf')):
@@ -64,19 +117,17 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
     # Return the final value
     return value
 
+if __name__ == "__main__":
+    # The initial position of the pieces
+    start_place = [{"B1": [(2, 1), "Man"], "B2": [(4, 1), "Man"], "B3": [(6, 1), "Man"], "B4": [(8, 1), "Man"],
+                    "B5": [(1, 2), "Man"], "B6": [(3, 2), "Man"], "B7": [(5, 2), "Man"], "B8": [(7, 2), "Man"],
+                    "B9": [(2, 3), "Man"], "B10": [(4, 3), "Man"], "B11": [(6, 3), "Man"], "B12": [(8, 3), "Man"]},
+                   {"R1": [(2, 8), "Man"], "R2": [(4, 8), "Man"], "R3": [(6, 8), "Man"], "R4": [(8, 8), "Man"],
+                    "R5": [(1, 7), "Man"], "R6": [(3, 7), "Man"], "R7": [(5, 7), "Man"], "R8": [(7, 7), "Man"],
+                    "R9": [(2, 6), "Man"], "R10": [(4, 6), "Man"], "R11": [(6, 6), "Man"], "R12": [(8, 6), "Man"]}]
 
-# The initial position of the pieces
-start_place = [{"B1": (2, 1), "B2": (4, 1), "B3": (6, 1), "B4": (8, 1),
-                "B5": (2, 2), "B6": (4, 2), "B7": (6, 2), "B8": (8, 2),
-                "B9": (2, 3), "B10": (4, 3), "B11": (6, 3), "B12": (8, 3)},
-               {"R1": (2, 8), "R2": (4, 8), "R3": (6, 8), "R4": (8, 8),
-                "R5": (2, 7), "R6": (4, 7), "R7": (6, 7), "R8": (8, 7),
-                "R9": (2, 6), "R10": (4, 6), "R11": (6, 6), "R12": (8, 6)}]
-
-# The initial actions that can be taken by each piece
-start_action = {"B1": [], "B2": [], "B3": [], "B4": [],
-               "B5": [], "B6": [], "B7": [], "B8": [],
-               "B9": [(1, 4), (3, 4)], "B10": [(3, 4), (5, 4)], "B11": [(5, 4), (7, 4)], "B12": [(7, 4)]}
-
-# The original node
-root = Node(start_place, action = start_action)
+    # The original node
+    root = Node(start_place)
+    root.legal_moves()
+    print(root.legalMove)
+    
