@@ -12,11 +12,10 @@ class Node:
     # Determine the legal moves for each piece
     def legal_moves(self, AI_turn = True):
         # Copy the current piece placement
-        self.legalMove = copy.deepcopy(self.state[0])
-
+        self.legalMove = copy.deepcopy(self.state[0 if AI_turn else 1])
         # Store the already occupied spaces
-        blackOccupancy = [elem[0] for elem in list(self.state[0 if AI_turn else 1].values())]
-        redOccupancy = [elem[0] for elem in list(self.state[1 if AI_turn else 0].values())]
+        allyOccupancy = [elem[0] for elem in list(self.state[0 if AI_turn else 1].values())]
+        enemyOccupancy = [elem[0] for elem in list(self.state[1 if AI_turn else 0].values())]
 
         # Iterate through the pieces and places of the pieces
         for piece, (place, role) in self.state[0 if AI_turn else 1].items():
@@ -53,27 +52,27 @@ class Node:
 
             # Initialise tiles and counters
             tiles = []
-            blackCounter = []
-            redCounter = []
+            allyCounter = []
+            enemyCounter = []
 
             # Iterate through the rows and coloumns of the piece
             for idx, (row, col) in enumerate(moveList):
                 # Check if there is no wall blocking
                 if row > 0 and row < 8 and col > 0 and col < 8:
                     # Ignore spaces with black pieces
-                    if (row, col) in blackOccupancy:
-                        blackCounter.append(idx)
+                    if (row, col) in allyOccupancy:
+                        allyCounter.append(idx)
                         continue
                     # Ignore spaces with red pieces
-                    elif (row, col) in redOccupancy:
-                        redCounter.append(idx)
+                    elif (row, col) in enemyOccupancy:
+                        enemyCounter.append(idx)
                         continue
 
                     # Jump over a red pieces
-                    if idx > len(moveList) / 2 - 1 and idx - len(moveList) / 2 not in redCounter:
+                    if idx > len(moveList) / 2 - 1 and idx - len(moveList) / 2 not in enemyCounter:
                         continue
                     # Don't jump over black pieces
-                    elif idx - len(moveList) / 2 in blackCounter:
+                    elif idx - len(moveList) / 2 in allyCounter:
                         continue
 
                     # Append the non-filtered tiles from move set
@@ -85,7 +84,7 @@ class Node:
     # Generate next states of the Node class
     def generate_child(self, AI_turn = True):
         # The initialisation next state
-        children = []
+        self.children = []
         # Run all the legal moves
         self.legal_moves(AI_turn)
 
@@ -97,27 +96,33 @@ class Node:
             # Go through all the places, the legal moves brings the piece
             for place in move:
                 # Update the map to the new place
-                newState = self.update_places(piece, place, role)
+                newState = self.update_places(piece, place, role, AI_turn = AI_turn)
                 # Create the child
                 child_node = Node(newState, parent = self)
                 # Append the child in the list
-                children.append(child_node)
+                self.children.append(child_node)
         
         # Return all the children of the node
-        return children
+        return self.children
         
 
     # Determining the best move for the current state
     def best_move(self):
-        self.chosenPiece = "B12"                        # Example
-        self.chosenMove = self.action["B12"][0]         # Example
+        allyOccupancy = [elem[0] for elem in list(self.state[0].values())]
+        enemyOccupancy = [elem[0] for elem in list(self.state[1].values())]
+
+        for piece, (place, role) in self.legalMove.items():
+            for (row, col) in place:
+                print("Something")
+            
+
     
     # Updating the placement given in the state
-    def update_places(self, piece, place, role):
+    def update_places(self, piece, place, role, AI_turn = True):
         # Make a copy of the state
         newState = copy.deepcopy(self.state)
         # Place the new position and role
-        newState[0][piece] = [place, role]
+        newState[0 if AI_turn else 1][piece] = [place, role]
 
         # Return the new state
         return newState
@@ -152,7 +157,7 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
         # Set beta to -infinty
         value = float('inf')
         # Go through every child in the state
-        for child in node.children:
+        for child in children:
             # Evaluate the childs minimax value decide the min value to set beta
             eval = H_minimax(child, depth - 1, True, alpha, beta)
             value = min(value, eval)
@@ -176,6 +181,4 @@ if __name__ == "__main__":
 
     # The original node
     root = Node(start_place)
-    child = root.generate_child()
-    print(child[2].state)
-    
+    H_minimax(root, 3)
