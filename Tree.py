@@ -58,7 +58,7 @@ class Node:
             # Iterate through the rows and coloumns of the piece
             for idx, (col, row) in enumerate(moveList):
                 # Check if there is no wall blocking
-                if col > 0 and col < 8 and row > 0 and row < 8:
+                if col > 0 and col < 9 and row > 0 and row < 9:
                     # Ignore spaces with black pieces
                     if (col, row) in allyOccupancy:
                         allyCounter.append(idx)
@@ -74,7 +74,6 @@ class Node:
                     # Don't jump over black pieces
                     elif idx - len(moveList) / 2 in allyCounter:
                         continue
-
                     # Append the non-filtered tiles from move set
                     tiles.append((col, row))
 
@@ -83,46 +82,61 @@ class Node:
 
     # Generate next states of the Node class
     def generate_child(self, AI_turn = True, all = True):
-        # The initialisation next state
-        self.children = [] if all else 0
         # Run all the legal moves
         self.legal_moves(AI_turn)
 
-        # Go through all the legal moves done by the pieces
+        # With all the children
         if all:
+            # The initialisation of next state
+            self.children = []
+            # Go through all the legal moves done by the pieces
             for piece, (move, role) in self.legalMove.items():
+                # Get the piece and initialise the list
+                Piece = self.state[0][piece]
+                # Check if a kill condition has been met
+                if abs(Piece[0][0] - move[0]) > 1 or abs(Piece[0][1] - move[1]) > 1:
+                    # For all the moves
+                    for Move in move:
+                        # All the killed pieces
+                        deathPiece = (Piece[0][1] + (Move[0] - Piece[0][0]) // 2, Piece[0][1] + (Move[1] - Piece[1][0]) // 2)
                 # Continue if there is no legal moves for the piece
                 if len(move) == 0:
                     continue
                 # Go through all the places, the legal moves brings the piece
                 for place in move:
                     # Update the map to the new place
-                    newState = self.update_places(piece, place, role, AI_turn = AI_turn)
+                    newState = self.update_places(piece, place, role, AI_turn = AI_turn, death = deathPiece)
                     # Create the child
                     child_node = Node(newState, parent = self)
                     # Append the child in the list
                     self.children.append(child_node)
+            
+            # Return all the children of the node
+            return self.children
+        # With only on child
         else:
             # Calculate the best move
             self.best_move()
             # Update the map to the new place
-            newState = self.update_places(self.chosenPiece, self.chosenMove, self.chosenRole)
+            newState = self.update_places(self.chosenPiece, self.chosenMove, self.chosenRole, death = self.deathPiece)
             # Create the child
             child_node = Node(newState, parent = self)
             # Append the child in the list
-            self.children = child_node
+            self.child = child_node
+
+            # Return child of the node
+            return self.child
         
-        # Return all the children of the node
-        return self.children
+        
         
 
     # Determining the best move for the current state
     def best_move(self):
         # Store the already occupied spaces and roles
-        allyOccupancy = [elem[0] for elem in list(self.state[0].values())[0]]
-        enemyOccupancy = [elem[0] for elem in list(self.state[1].values())[0]]
-        allyRole = [elem[0] for elem in list(self.state[0].values())[1]]
-        enemyRole = [elem[0] for elem in list(self.state[1].values())[1]]
+        allyOccupancy = [elem[0] for elem in list(self.state[0].values())]
+        enemyOccupancy = [elem[0] for elem in list(self.state[1].values())]
+        allyRole = [elem[1] for elem in list(self.state[0].values())]
+        enemyRole = [elem[1] for elem in list(self.state[1].values())]
 
         # The best move for the state
         bestMove = []
@@ -138,8 +152,8 @@ class Node:
         # All setups with O as AI and X as opponent (mirrored setups counts)
         # Setup = 1      Setup = 2       Setup = 3       Setup = 4       Setup = 5       Setup = 6       Setup = 7      Setup = 8       Setup = 9        Setup = 10       Setup = 11       Setup = 12       Setup = 13       Setup = 14       Setup = 15       Setup = 16   
         # | | | | | |    | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |      |O| | | | |      | | | | | |  
-        # | | | | | |    | | | | | |     | | | | | |     | | | | | |     | |O| |O| |     | | |O| | |     | |O| | | |     | | | | | |     | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |     O| | | | | |      | |O| | | |      | |O| | | |  
-        # | | |O| | |    | | |O| | |     | | | |O| |     | |O| | | |     | | | | | |     | | | | | |     | | |X| | |     | | |X| | |     | | |X| | |      | | | | |O|      | | | | | |      | | | | | |      | | | | | |      |O| |O| | |      | | |O| |O|      |X| |X| | |  
+        # | | | | | |    | | | | | |     | | | | | |     | | | | | |     | |O| |O| |     | | | | | |     | |O| | | |     | | | | | |     | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |     O| | | | | |      | |O| | | |      | |O| | | |  
+        # | | |O| | |    | | |O| | |     | | | |O| |     | |O| | | |     | | | | | |     | | |O| | |     | | |X| | |     | | |X| | |     | | |X| | |      | | | | |O|      | | | | | |      | | | | | |      | | | | | |      |O| |O| | |      | | |O| |O|      |X| |X| | |  
         # | | | | | |    | |X| | | |     | | | | | |     | | |X| | |     | |X| | | |     | |X| |X| |     | | | | | |     | | | | | |     | | | | | |      | | | | | |X     | | | | | |      | | | |O| |      | | | | | |      | | | | | |      | | | | | |      | | | | | |  
         # | | | | | |    | | | | | |     | |X| | | |     | | | |X| |     | | | | | |     | | | | | |     | | |X| | |     | | |O| | |     | | |O| | |      | | | | | |      | | |O| | |      | | | | | |      | | |O| | |      |X| |X| | |      | | |X| |X|      | | | | |X|  
         # | | | | | |    | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |      | | | | | |      |_|_|_|_|_|      |_|X|_|_|_|      | |X| | | |      | | | | | |      | | | | | |      | | | | | |  
@@ -153,6 +167,8 @@ class Node:
                 # Initialise counters and setup state for each piece
                 allyCounter = []
                 enemyCounter = []
+                allyCounterRole = []
+                enemyCounterRole = []
                 outOfBound = []
                 setupState = []
                 
@@ -164,14 +180,14 @@ class Node:
                     
                     # The detected enemies in the scan area
                     if (col, row) in enemyOccupancy:
-                        pieceRole = enemyRole[enemyOccupancy.index((col, row))]
-                        enemyCounter.append(((x, y), pieceRole))
+                        enemyCounter.append((x, y))
+                        enemyCounterRole.append(enemyRole[enemyOccupancy.index((col, row))])
                     # The detected allies in the scan area
                     elif (col, row) in allyOccupancy:
-                        pieceRole = allyRole[allyOccupancy.index((col, row))]
-                        allyCounter.append(((x, y), pieceRole))
+                        allyCounter.append((x, y))
+                        allyCounterRole.append(allyRole[allyOccupancy.index((col, row))])
                     # The detected walls in the scan area
-                    elif col > 0 and col < 8 and row > 0 and row < 8:
+                    elif col > 0 and col < 9 and row > 0 and row < 9:
                         outOfBound.append(((x, y), "Wall"))
                 
                 # Jump forward over an enemy at left side
@@ -221,7 +237,7 @@ class Node:
                     if (0, 2) in enemyCounter and (-2, 2) not in enemyCounter and (-2, 0) in allyCounter:
                         setupState.append((5, 10, (place[0] - 1, place[1] + 1)))
                     # Setup 9
-                    if (((-2, -2) in enemyCounter and enemyRole[enemyCounter.index((-2, -2))] == "King") or ((0, -2) in enemyCounter  and enemyRole[enemyCounter.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyRole[enemyCounter.index((2, -2))] == "King")) and (-2, 2) in enemyCounter:
+                    if (((-2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((-2, -2))] == "King") or ((0, -2) in enemyCounter  and enemyRole[enemyCounterRole.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((2, -2))] == "King")) and (-2, 2) in enemyCounter:
                         setupState.append((9, 11, (place[0] - 1, place[1] + 1)))
                     # Setup 10
                     if (1, 1) in enemyCounter and (2, 2) in outOfBound and (-2, 2) not in enemyCounter:
@@ -256,7 +272,7 @@ class Node:
                     if (0, 2) in enemyCounter and (2, 2) not in enemyCounter and (2, 0) in allyCounter:
                         setupState.append((5, 10, (place[0] + 1, place[1] + 1)))
                     # Setup 9
-                    if (((-2, -2) in enemyCounter and enemyRole[enemyCounter.index((-2, -2))] == "King") or ((0, -2) in enemyCounter  and enemyRole[enemyCounter.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyRole[enemyCounter.index((2, -2))] == "King")) and (2, 2) in enemyCounter:
+                    if (((-2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((-2, -2))] == "King") or ((0, -2) in enemyCounter  and enemyRole[enemyCounterRole.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((2, -2))] == "King")) and (2, 2) in enemyCounter:
                         setupState.append((9, 11, (place[0] + 1, place[1] + 1)))
                     # Setup 10
                     if (-1, 1) in enemyCounter and (-2, 2) in outOfBound and (2, 2) not in enemyCounter:
@@ -285,7 +301,7 @@ class Node:
                     if (-1, 1) in enemyCounter and (1, 1) in enemyCounter:
                         setupState.append((6, 5, (place[0] - 1, place[1] - 1)))
                     # Setup 8
-                    if ((-2, -2) in enemyCounter and enemyRole[enemyCounter.index((-2, -2))] == "Man") or ((0, -2) in enemyCounter and enemyRole[enemyCounter.index((0, -2))] == "Man"):
+                    if ((-2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((-2, -2))] == "Man") or ((0, -2) in enemyCounter and enemyRole[enemyCounterRole.index((0, -2))] == "Man"):
                         setupState.append((8, 10, (place[0] - 1, place[1] - 1)))
                 # Move backward at right side
                 if (place[0] + 1, place[1] - 1) in self.legalMove[piece][0]:
@@ -296,7 +312,7 @@ class Node:
                     if (-1, 1) in enemyCounter and (1, 1) in enemyCounter:
                         setupState.append((6, 5, (place[0] + 1, place[1] - 1)))
                     # Setup 8
-                    if ((0, -2) in enemyCounter and enemyRole[enemyCounter.index((0, -2))] == "Man") or ((2, -2) in enemyCounter and enemyRole[enemyCounter.index((2, -2))] == "Man"):
+                    if ((0, -2) in enemyCounter and enemyRole[enemyCounterRole.index((0, -2))] == "Man") or ((2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((2, -2))] == "Man"):
                         setupState.append((8, 10, (place[0] + 1, place[1] - 1)))
 
                 # Finding the best move for the piece
@@ -305,29 +321,65 @@ class Node:
                 else:
                     tupleList = [tup[1] for tup in setupState]
                     bestMove.append(setupState[tupleList.index(min(tupleList))])
-        
+                    
         # Finding the best move for the state given as (setup, priority, direction)
-        tupleList = [tup[1] for tup in bestMove]
-        chosen = bestMove[tupleList.index(min(tupleList))]
+        priorityList = [tup[1] for tup in bestMove]
+        idx = priorityList.index(min(priorityList))
+        chosen = bestMove[idx]
         # The chosen piece
-        self.chosenPiece = list(self.state[0].keys())[tupleList.index(min(tupleList))]
+        self.chosenPiece = list(self.state[0].keys())[idx]
         # The chosen move
         self.chosenMove = chosen[2]
         # The determined role
-        roleTransform = bestMove[tupleList.index(min(tupleList))][0]
-        self.chosenRole = self.state[0][self.chosenPiece][1] if (not roleTransform == 7 or not roleTransform == 14) else "King"
+        self.chosenRole = self.state[0][self.chosenPiece][1]
+        # Get the piece and initialise the list
+        Piece = self.state[0][self.chosenPiece]
+        # Check if a kill condition has been met
+        if abs(Piece[0][0] - self.chosenMove[0]) > 1 or abs(Piece[0][1] - self.chosenMove[0]) > 1:
+            # All the killed pieces
+            self.deathPiece = (Piece[0][0] + (self.chosenMove[0] - Piece[0][0]) // 2, Piece[0][1] + (self.chosenMove[1] - Piece[0][1]) // 2)
+        
         # The heuristic score for minimax
         self.score = (13 - chosen[1]) + (len(self.state[0]) - len(self.state[1]))
     
     # Updating the placement given in the state
-    def update_places(self, piece, place, role, AI_turn = True):
+    def update_places(self, piece, place, role, AI_turn = True, death = None):
         # Make a copy of the state
-        newState = copy.deepcopy(self.state)
+        self.newState = copy.deepcopy(self.state)
+        # Giving the new role
+        if AI_turn:
+            if place[1] == 8:
+                newRole = "King"
+            else:
+                newRole = role
+        else:
+            if place[1] == 0:
+                newRole = "King"
+            else:
+                newRole = role
+        # Update the death in the turn
+        if death is not None:
+            # Store the already occupied spaces
+            allyOccupancy = [elem[0] for elem in list(self.state[0].values())[0]]
+            enemyOccupancy = [elem[0] for elem in list(self.state[1].values())[0]]
+            # Going through all the death
+            for killed in death:
+                # If the death is an ally
+                if killed in allyOccupancy:
+                    # Find the piece and replace its role
+                    idx = allyOccupancy.index(killed)
+                    self.newState[0].pop(list(self.state[0].keys())[idx])
+                # If the death is an enemy
+                elif killed in enemyOccupancy:
+                    # Find the piece and replace its role
+                    idx = enemyOccupancy.index(killed)
+                    self.newState[1].pop(list(self.state[1].keys())[idx])
+        
         # Place the new position and role
-        newState[0 if AI_turn else 1][piece] = [place, role]
+        self.newState[0 if AI_turn else 1][piece] = [place, newRole]
 
         # Return the new state
-        return newState
+        return self.newState
 
 # The H-minimax strategy with aplha-beta pruning (https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning#Pseudocode)
 def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta = float('inf')):
@@ -339,6 +391,7 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
         # Evalute the heuristic value
         node.best_move()
 
+        # Return the node score
         return node.score
 
     # If player is max
@@ -376,16 +429,19 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
 
 if __name__ == "__main__":
     # The initial position of the pieces
-    start_place = [{"B1": [(2, 1), "Man"], "B2": [(4, 1), "Man"], "B3": [(6, 1), "Man"], "B4": [(8, 1), "Man"],
-                    "B5": [(1, 2), "Man"], "B6": [(3, 2), "Man"], "B7": [(5, 2), "Man"], "B8": [(7, 2), "Man"],
-                    "B9": [(2, 3), "Man"], "B10": [(4, 3), "Man"], "B11": [(6, 3), "Man"], "B12": [(8, 3), "Man"]},
-                   {"R1": [(2, 8), "Man"], "R2": [(4, 8), "Man"], "R3": [(6, 8), "Man"], "R4": [(8, 8), "Man"],
-                    "R5": [(1, 7), "Man"], "R6": [(3, 7), "Man"], "R7": [(5, 7), "Man"], "R8": [(7, 7), "Man"],
-                    "R9": [(2, 6), "Man"], "R10": [(4, 6), "Man"], "R11": [(6, 6), "Man"], "R12": [(8, 6), "Man"]}]
+    #start_place = [{"B1": [(2, 1), "Man"], "B2": [(4, 1), "Man"], "B3": [(6, 1), "Man"], "B4": [(8, 1), "Man"],
+    #                "B5": [(1, 2), "Man"], "B6": [(3, 2), "Man"], "B7": [(5, 2), "Man"], "B8": [(7, 2), "Man"],
+    #                "B9": [(2, 3), "Man"], "B10": [(4, 3), "Man"], "B11": [(6, 3), "Man"], "B12": [(8, 3), "Man"]},
+    #               {"R1": [(2, 8), "Man"], "R2": [(4, 8), "Man"], "R3": [(6, 8), "Man"], "R4": [(8, 8), "Man"],
+    #                "R5": [(1, 7), "Man"], "R6": [(3, 7), "Man"], "R7": [(5, 7), "Man"], "R8": [(7, 7), "Man"],
+    #                "R9": [(2, 6), "Man"], "R10": [(4, 6), "Man"], "R11": [(6, 6), "Man"], "R12": [(8, 6), "Man"]}]
+
+    start_place = [{"B1": [(6, 3), "Man"]},
+                   {"R1": [(7, 4), "Man"]}]
 
     # The original node
     root = Node(start_place)
     root.generate_child(all = False)
     print(root.state)
-    print(root.children.state)
+    print(root.child.state)
     
