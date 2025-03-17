@@ -98,7 +98,7 @@ class Node:
                     # For all the moves
                     for Move in move:
                         # All the killed pieces
-                        deathPiece = (Piece[0][1] + (Move[0] - Piece[0][0]) // 2, Piece[0][1] + (Move[1] - Piece[1][0]) // 2)
+                        deathPiece = (Piece[0][1] + (Move[0] - Piece[0][0]) // 2, Piece[0][1] + (Move[1] - Piece[0][1]) // 2)
                 # Continue if there is no legal moves for the piece
                 if len(move) == 0:
                     continue
@@ -141,22 +141,22 @@ class Node:
         # The best move for the state
         bestMove = []
         # Scanning areas relative to the piece
-        scanList = [(3, 3), (3, 3), (1, 3), (1, 3),
-                    (2, 2), (2, 2),
-                    (3, 1), (3, 1), (1, 1), (1, 1),
-                    (2, 0), (2, 0),
-                    (3, 1), (3, 1), (1, 1), (1, 1),
-                    (2, 2), (2, 2),
-                    (3, 3), (3, 3), (1, 3), (1, 3)]
+        scanList = [(-3, -3), (-1, -3), (1, -3), (3, -3),
+                    (-2, -2), (0, -2), (2, -2),
+                    (-3, -1), (-1, -1), (1, -1), (3, -1),
+                    (-2, 0), (2, 0),
+                    (-3, 1), (-1, 1), (1, 1), (3, 1),
+                    (-2, 2), (0, 2), (2, 2),
+                    (-3, 3), (-1, 3), (1, 3), (3, 3)]
 
         # All setups with O as AI and X as opponent (mirrored setups counts)
-        # Setup = 1      Setup = 2       Setup = 3       Setup = 4       Setup = 5       Setup = 6       Setup = 7      Setup = 8       Setup = 9        Setup = 10       Setup = 11       Setup = 12       Setup = 13       Setup = 14       Setup = 15       Setup = 16   
-        # | | | | | |    | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |      |O| | | | |      | | | | | |  
-        # | | | | | |    | | | | | |     | | | | | |     | | | | | |     | |O| |O| |     | | | | | |     | |O| | | |     | | | | | |     | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |     O| | | | | |      | |O| | | |      | |O| | | |  
-        # | | |O| | |    | | |O| | |     | | | |O| |     | |O| | | |     | | | | | |     | | |O| | |     | | |X| | |     | | |X| | |     | | |X| | |      | | | | |O|      | | | | | |      | | | | | |      | | | | | |      |O| |O| | |      | | |O| |O|      |X| |X| | |  
-        # | | | | | |    | |X| | | |     | | | | | |     | | |X| | |     | |X| | | |     | |X| |X| |     | | | | | |     | | | | | |     | | | | | |      | | | | | |X     | | | | | |      | | | |O| |      | | | | | |      | | | | | |      | | | | | |      | | | | | |  
-        # | | | | | |    | | | | | |     | |X| | | |     | | | |X| |     | | | | | |     | | | | | |     | | |X| | |     | | |O| | |     | | |O| | |      | | | | | |      | | |O| | |      | | | | | |      | | |O| | |      |X| |X| | |      | | |X| |X|      | | | | |X|  
-        # | | | | | |    | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |      | | | | | |      |_|_|_|_|_|      |_|X|_|_|_|      | |X| | | |      | | | | | |      | | | | | |      | | | | | |  
+        # Setup = 1      Setup = 2       Setup = 3       Setup = 4       Setup = 5       Setup = 6       Setup = 7      Setup = 8       Setup = 9        Setup = 10       Setup = 11       Setup = 12       Setup = 13       Setup = 14       Setup = 15       Setup = 16       Setup = 17
+        # | | | | | |    | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |      |O| | | | |      | | | | | |      | | | | | | 
+        # | | | | | |    | | | | | |     | | | | | |     | | | | | |     | |O| |O| |     | | | | | |     | |O| | | |     | | | | | |     | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |     O| | | | | |      | |O| | | |      | |O| | | |      | | | | | | 
+        # | | |O| | |    | | |O| | |     | | | |O| |     | |O| | | |     | | | | | |     | | |O| | |     | | |X| | |     | | |X| | |     | | |X| | |      | | | | |O|      | | | | | |      | | | | | |      | | | | | |      |O| |O| | |      | | |O| |O|      |X| |X| | |      |O| | | | | 
+        # | | | | | |    | |X| | | |     | | | | | |     | | |X| | |     | |X| | | |     | |X| |X| |     | | | | | |     | | | | | |     | | | | | |      | | | | | |X     | | | | | |      | | | |O| |      | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | | 
+        # | | | | | |    | | | | | |     | |X| | | |     | | | |X| |     | | | | | |     |X| | | |X|     | | |X| | |     | | |O| | |     | | |O| | |      | | | | | |      | | |O| | |      | | | | | |      | | |O| | |      |X| |X| | |      | | |X| |X|      | | | | |X|      |X| | | | | 
+        # | | | | | |    | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |      | | | | | |      |_|_|_|_|_|      |_|X|_|_|_|      | |X| | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | | 
         #                                                                The right one                                                   Opponent is king There is a wall                                                     The middle one   Same as before
         # Iterate through the pieces and places of the pieces
         for piece, (place, _) in self.state[0].items():
@@ -187,9 +187,9 @@ class Node:
                         allyCounter.append((x, y))
                         allyCounterRole.append(allyRole[allyOccupancy.index((col, row))])
                     # The detected walls in the scan area
-                    elif col > 0 and col < 9 and row > 0 and row < 9:
-                        outOfBound.append(((x, y), "Wall"))
-                
+                    elif col < 1 or col > 8 or row < 1 or row > 8:
+                        outOfBound.append(((x, y)))
+
                 # Jump forward over an enemy at left side
                 if (place[0] - 2, place[1] + 2) in self.legalMove[piece][0]:
                     # Setup 2
@@ -225,7 +225,7 @@ class Node:
                 # Move forward at right side
                 if (place[0] - 1, place[1] + 1) in self.legalMove[piece][0]:
                     # Setup 1
-                    if (-2, 2) not in enemyCounter:
+                    if (-2, 2) not in enemyCounter and (0, 2) not in enemyCounter:
                         setupState.append((1, 12, (place[0] - 1, place[1] + 1)))
                     # Setup 3
                     if (2, 2) in enemyCounter and (0, 2) not in enemyCounter:
@@ -237,30 +237,33 @@ class Node:
                     if (0, 2) in enemyCounter and (-2, 2) not in enemyCounter and (-2, 0) in allyCounter:
                         setupState.append((5, 10, (place[0] - 1, place[1] + 1)))
                     # Setup 9
-                    if (((-2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((-2, -2))] == "King") or ((0, -2) in enemyCounter  and enemyRole[enemyCounterRole.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((2, -2))] == "King")) and (-2, 2) in enemyCounter:
+                    if (((-2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((-2, -2))] == "King") or ((0, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((2, -2))] == "King")) and (-2, 2) in enemyCounter:
                         setupState.append((9, 11, (place[0] - 1, place[1] + 1)))
                     # Setup 10
                     if (1, 1) in enemyCounter and (2, 2) in outOfBound and (-2, 2) not in enemyCounter:
                         setupState.append((10, 6, (place[0] - 1, place[1] + 1)))
                     # Setup 11
-                    if (-2, 2) in outOfBound or (0, 2) in outOfBound or (2, 2) in outOfBound:
+                    if (-2, 2) in outOfBound and (0, 2) in outOfBound and (2, 2) in outOfBound:
                         setupState.append((11, 7, (place[0] - 1, place[1] + 1)))
                     # Setup 12
-                    if (2, 2) in enemyCounter and (0, 2) in enemyCounter and ((-3, 3) in outOfBound or (-1, 3) in outOfBound or (0, 3) or (1, 3) in outOfBound in outOfBound or (3, 3) in outOfBound):
+                    if (2, 2) in enemyCounter and (0, 2) in enemyCounter and ((-3, 3) in outOfBound and (-1, 3) in outOfBound and (1, 3) in outOfBound and (3, 3) in outOfBound):
                         setupState.append((12, 8, (place[0] - 1, place[1] + 1)))
                     # Setup 13
                     if (1, 1) in enemyCounter and ((-2, 2) in outOfBound or (0, 2) in outOfBound or (2, 2) in outOfBound):
                         setupState.append((13, 4, (place[0] - 1, place[1] + 1)))
                     # Setup 14
-                    if (-1, 1) in enemyCounter and (1, 1) in enemyCounter and (-2, -2) in allyCounter and (-1, -1) in allyCounter and (1, -1) in allyCounter and (-3, -3) in outOfBound:
+                    if (-2, 2) in enemyCounter and (0, 2) in enemyCounter and (-2, 0) in allyCounter and (1, -1) in allyCounter and (2, -2) in outOfBound:
                         setupState.append((14, 9, (place[0] - 1, place[1] + 1)))
                     # Setup 15
-                    if (-1, 1) in enemyCounter and (1, 1) in enemyCounter and (-3, -3) in allyCounter and (-2, -2) in allyCounter and (-1, -1) in allyCounter and (1, -1) in allyCounter:
+                    if (-2, 2) in enemyCounter and (0, 2) in enemyCounter and (-2, 0) in allyCounter and (1, -1) in allyCounter and (2, -2) in allyCounter:
                         setupState.append((15, 9, (place[0] - 1, place[1] + 1)))
+                    # Setup 17
+                    if (0, 2) in enemyCounter and (-2, 0) in outOfBound:
+                        setupState.append((17, 10, (place[0] - 1, place[1] + 1)))
                 # Move forward at left side
                 if (place[0] + 1, place[1] + 1) in self.legalMove[piece][0]:
                     # Setup 1
-                    if (2, 2) not in enemyCounter or (0, 2) not in enemyCounter:
+                    if (2, 2) not in enemyCounter and (0, 2) not in enemyCounter:
                         setupState.append((1, 12, (place[0] + 1, place[1] + 1)))
                     # Setup 3
                     if (-2, 2) in enemyCounter and (0, 2) not in enemyCounter:
@@ -272,36 +275,39 @@ class Node:
                     if (0, 2) in enemyCounter and (2, 2) not in enemyCounter and (2, 0) in allyCounter:
                         setupState.append((5, 10, (place[0] + 1, place[1] + 1)))
                     # Setup 9
-                    if (((-2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((-2, -2))] == "King") or ((0, -2) in enemyCounter  and enemyRole[enemyCounterRole.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((2, -2))] == "King")) and (2, 2) in enemyCounter:
+                    if (((-2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((-2, -2))] == "King") or ((0, -2) in enemyCounter  and enemyCounterRole[enemyCounter.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((2, -2))] == "King")) and (2, 2) in enemyCounter:
                         setupState.append((9, 11, (place[0] + 1, place[1] + 1)))
                     # Setup 10
                     if (-1, 1) in enemyCounter and (-2, 2) in outOfBound and (2, 2) not in enemyCounter:
                         setupState.append((10, 6, (place[0] + 1, place[1] + 1)))
                     # Setup 11
-                    if (-2, 2) in outOfBound or (0, 2) in outOfBound or (2, 2) in outOfBound:
+                    if (-2, 2) in outOfBound and (0, 2) in outOfBound and (2, 2) in outOfBound:
                         setupState.append((11, 7, (place[0] + 1, place[1] + 1)))
                     # Setup 12
-                    if (-2, 2) in enemyCounter and (0, 2) in enemyCounter and ((-3, 3) in outOfBound or (-1, 3) in outOfBound or (0, 3) or (1, 3) in outOfBound in outOfBound or (3, 3) in outOfBound):
+                    if (-2, 2) in enemyCounter and (0, 2) in enemyCounter and ((-3, 3) in outOfBound and (-1, 3) in outOfBound and (1, 3) in outOfBound and (3, 3) in outOfBound):
                         setupState.append((12, 8, (place[0] + 1, place[1] + 1)))
                     # Setup 13
                     if (-1, 1) in enemyCounter and ((-2, 2) in outOfBound or (0, 2) in outOfBound or (2, 2) in outOfBound):
                         setupState.append((13, 4, (place[0] + 1, place[1] + 1)))
                     # Setup 14
-                    if (1, 1) in enemyCounter and (-1, 1) in enemyCounter and (2, -2) in allyCounter and (1, -1) in allyCounter and (-1, -1) in allyCounter and (3, -3) in outOfBound:
+                    if (0, 2) in enemyCounter and (2, 2) in enemyCounter and (2, 0) in allyCounter and (-1, -1) in allyCounter and (-2, -2) in outOfBound:
                         setupState.append((14, 9, (place[0] + 1, place[1] + 1)))
                     # Setup 15
-                    if (1, 1) in enemyCounter and (-1, 1) in enemyCounter and (3, -3) in allyCounter and (2, -2) in allyCounter and (1, -1) in allyCounter and (-1, -1) in allyCounter:
+                    if (0, 2) in enemyCounter and (2, 2) in enemyCounter and (2, 0) in allyCounter and (-1, -1) in allyCounter and (-2, -2) in allyCounter:
                         setupState.append((15, 9, (place[0] + 1, place[1] + 1)))
+                    # Setup 17
+                    if (0, 2) in enemyCounter and (2, 0) in outOfBound:
+                        setupState.append((17, 10, (place[0] + 1, place[1] + 1)))
                 # Move backward at left side
                 if (place[0] - 1, place[1] - 1) in self.legalMove[piece][0]:
                     # Setup 1
                     if (-2, -2) not in enemyCounter or (0, -2) not in enemyCounter:
                         setupState.append((1, 12, (place[0] - 1, place[1] - 1)))
                     # Setup 6
-                    if (-1, 1) in enemyCounter and (1, 1) in enemyCounter:
+                    if (-1, 1) in enemyCounter and (1, 1) in enemyCounter and (-2, 2) in enemyCounter and (2, 2) in enemyCounter:
                         setupState.append((6, 5, (place[0] - 1, place[1] - 1)))
                     # Setup 8
-                    if ((-2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((-2, -2))] == "Man") or ((0, -2) in enemyCounter and enemyRole[enemyCounterRole.index((0, -2))] == "Man"):
+                    if ((-2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((-2, -2))] == "Man") or ((0, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((0, -2))] == "Man"):
                         setupState.append((8, 10, (place[0] - 1, place[1] - 1)))
                 # Move backward at right side
                 if (place[0] + 1, place[1] - 1) in self.legalMove[piece][0]:
@@ -309,10 +315,10 @@ class Node:
                     if (2, -2) not in enemyCounter or (0, -2) not in enemyCounter:
                         setupState.append((1, 12, (place[0] + 1, place[1] - 1)))
                     # Setup 6
-                    if (-1, 1) in enemyCounter and (1, 1) in enemyCounter:
+                    if (-1, 1) in enemyCounter and (1, 1) in enemyCounter and (-2, 2) in enemyCounter and (2, 2) in enemyCounter:
                         setupState.append((6, 5, (place[0] + 1, place[1] - 1)))
                     # Setup 8
-                    if ((0, -2) in enemyCounter and enemyRole[enemyCounterRole.index((0, -2))] == "Man") or ((2, -2) in enemyCounter and enemyRole[enemyCounterRole.index((2, -2))] == "Man"):
+                    if ((0, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((0, -2))] == "Man") or ((2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((2, -2))] == "Man"):
                         setupState.append((8, 10, (place[0] + 1, place[1] - 1)))
 
                 # Finding the best move for the piece
@@ -334,8 +340,10 @@ class Node:
         self.chosenRole = self.state[0][self.chosenPiece][1]
         # Get the piece and initialise the list
         Piece = self.state[0][self.chosenPiece]
+        # Initialise death counter
+        self.deathPiece = None
         # Check if a kill condition has been met
-        if abs(Piece[0][0] - self.chosenMove[0]) > 1 or abs(Piece[0][1] - self.chosenMove[0]) > 1:
+        if abs(Piece[0][0] - self.chosenMove[0]) > 1 or abs(Piece[0][1] - self.chosenMove[1]) > 1:
             # All the killed pieces
             self.deathPiece = (Piece[0][0] + (self.chosenMove[0] - Piece[0][0]) // 2, Piece[0][1] + (self.chosenMove[1] - Piece[0][1]) // 2)
         
@@ -357,23 +365,23 @@ class Node:
                 newRole = "King"
             else:
                 newRole = role
+        
         # Update the death in the turn
         if death is not None:
             # Store the already occupied spaces
-            allyOccupancy = [elem[0] for elem in list(self.state[0].values())[0]]
-            enemyOccupancy = [elem[0] for elem in list(self.state[1].values())[0]]
-            # Going through all the death
-            for killed in death:
-                # If the death is an ally
-                if killed in allyOccupancy:
-                    # Find the piece and replace its role
-                    idx = allyOccupancy.index(killed)
-                    self.newState[0].pop(list(self.state[0].keys())[idx])
-                # If the death is an enemy
-                elif killed in enemyOccupancy:
-                    # Find the piece and replace its role
-                    idx = enemyOccupancy.index(killed)
-                    self.newState[1].pop(list(self.state[1].keys())[idx])
+            allyOccupancy = [elem[0] for elem in list(self.state[0].values())]
+            enemyOccupancy = [elem[0] for elem in list(self.state[1].values())]
+            
+            # If the death is an ally
+            if death in allyOccupancy:
+                # Find the piece and replace its role
+                idx = allyOccupancy.index(death)
+                self.newState[0].pop(list(self.state[0].keys())[idx])
+            # If the death is an enemy
+            elif death in enemyOccupancy:
+                # Find the piece and replace its role
+                idx = enemyOccupancy.index(death)
+                self.newState[1].pop(list(self.state[1].keys())[idx])
         
         # Place the new position and role
         self.newState[0 if AI_turn else 1][piece] = [place, newRole]
@@ -436,8 +444,9 @@ if __name__ == "__main__":
     #                "R5": [(1, 7), "Man"], "R6": [(3, 7), "Man"], "R7": [(5, 7), "Man"], "R8": [(7, 7), "Man"],
     #                "R9": [(2, 6), "Man"], "R10": [(4, 6), "Man"], "R11": [(6, 6), "Man"], "R12": [(8, 6), "Man"]}]
 
-    start_place = [{"B1": [(6, 3), "Man"]},
-                   {"R1": [(7, 4), "Man"]}]
+    # Testing setups
+    start_place = [{"B1": [(7, 4), "Man"]},
+                   {"R1": [(7, 6), "Man"]}]
 
     # The original node
     root = Node(start_place)
