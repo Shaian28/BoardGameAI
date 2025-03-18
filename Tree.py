@@ -168,7 +168,7 @@ class Node:
                         allyCounterRole.append(allyRole[allyOccupancy.index((col, row))])
                     # The detected walls in the scan area
                     elif col < 1 or col > 8 or row < 1 or row > 8:
-                        outOfBound.append(((x, y)))
+                        outOfBound.append((x, y))
 
                 # Jump forward over an enemy at left side
                 if (place[0] - 2, place[1] + 2) in self.legalMove[piece][0]:
@@ -366,15 +366,22 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
     # If the limited depth has been reached
     if depth == 0 or len(children) == 0:
         # Evalute the heuristic value
-        score, chosen = node.best_move()
+        try:
+            score, chosen = node.best_move()
+        except:
+            score = float('inf')
+            chosen = 0
 
         # Return the node score
         return score, chosen
 
+    # The chosen child
+    childIdx = 0
+
     # If player is max
     if maximizingPlayer:
         # Set alpha to -infinty
-        value = float('-inf')
+        value = float('inf')
         # Go through every child in the state
         for idx, child in enumerate(children):
             # Evaluate the childs minimax value decide the max value to set alpha
@@ -418,13 +425,24 @@ if __name__ == "__main__":
     #                "R9": [(2, 6), "Man"], "R10": [(4, 6), "Man"], "R11": [(6, 6), "Man"], "R12": [(8, 6), "Man"]}]
 
     # Testing setups
-    start_place = [{"B1": [(7, 4), "Man"]},
-                   {"R1": [(7, 6), "Man"]}]
+    start_place = [{"B1": [(7, 5), "Man"]},
+                   {"R1": [(7, 7), "Man"]}]
 
     # The original node
     root = Node(start_place)
-    theChosenOne, testing = H_minimax(root, 2)    # 2nd argument should be an even number over 0
-    child = root.children[theChosenOne]
-    print(root.state)
-    print(child.state)
+    # The amount of steps taken in minimax, this should be an even number over 0
+    step = 10
+
+    # Normal minimax operation
+    if step > 0:
+        _, theChosenOne = H_minimax(root, step)
+        child = root.children[theChosenOne]
+        print(root.state)
+        print(child.state)
+    # Only checking the next step
+    else:
+        _, theChosenOne = H_minimax(root, 0)
+        root.update_places(theChosenOne[0], theChosenOne[1], root.state[0][theChosenOne[0]][1])
+        print(root.state)
+        print(root.newState)
     
