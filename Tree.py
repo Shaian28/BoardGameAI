@@ -169,7 +169,7 @@ class Node:
                     # The detected walls in the scan area
                     elif col < 1 or col > 8 or row < 1 or row > 8:
                         outOfBound.append((x, y))
-
+                
                 # Jump forward over an enemy at left side
                 if (place[0] - 2, place[1] + 2) in self.legalMove[piece][0]:
                     # Setup 2
@@ -316,8 +316,8 @@ class Node:
 
         # The heuristic score for minimax
         score = (13 - chosen[1]) + (len(self.state[0]) - len(self.state[1]))
-
-        return score, (chosenPiece, chosen[2])
+        
+        return score, (chosenPiece, chosen)
     
     # Updating the placement given in the state
     def update_places(self, piece, place, role, AI_turn = True, death = None):
@@ -354,7 +354,7 @@ class Node:
         
         # Place the new position and role
         self.newState[0 if AI_turn else 1][piece] = [place, newRole]
-
+        
         # Return the new state
         return self.newState
 
@@ -365,23 +365,24 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
     
     # If the limited depth has been reached
     if depth == 0 or len(children) == 0:
-        # Evalute the heuristic value
+        # Initialize value
+        chosen = 0
         try:
             score, chosen = node.best_move()
         except:
-            score = float('inf')
-            chosen = 0
+            score = float('-inf') if maximizingPlayer else float('inf')
 
+        #print((depth, score, node.state))
         # Return the node score
         return score, chosen
-
+    
     # The chosen child
     childIdx = 0
 
     # If player is max
     if maximizingPlayer:
         # Set alpha to -infinty
-        value = float('inf')
+        value = float('-inf')
         # Go through every child in the state
         for idx, child in enumerate(children):
             # Evaluate the childs minimax value decide the max value to set alpha
@@ -389,11 +390,17 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
             if value < eval:
                 value = eval
                 childIdx = idx
+            
             # Break out of loop if beta is the smaller number
             if value > beta:
                 break
+            
             # Update alpha
             alpha = max(alpha, value)
+
+        # Return the final value
+        #print((child, depth, value, node.state))
+        return value, childIdx
 
     # If the player is min
     else:
@@ -406,14 +413,17 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
             if value > eval:
                 value = eval
                 childIdx = idx
+            
             # Break out of loop if alpha is the bigger number
             if value < alpha:
                 break
+            
             # Update beta
             beta = min(beta, value)
 
-    # Return the final value
-    return value, childIdx
+        # Return the final value
+        #print((child, depth, value, node.state))
+        return value, childIdx
 
 if __name__ == "__main__":
     # The initial position of the pieces
@@ -431,7 +441,7 @@ if __name__ == "__main__":
     # The original node
     root = Node(start_place)
     # The amount of steps taken in minimax, this should be an even number over 0
-    step = 10
+    step = 2
 
     # Normal minimax operation
     if step > 0:
