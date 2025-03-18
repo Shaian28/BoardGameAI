@@ -81,55 +81,35 @@ class Node:
             self.legalMove[piece] = [tiles, role]
 
     # Generate next states of the Node class
-    def generate_child(self, AI_turn = True, all = True):
+    def generate_child(self, AI_turn = True):
         # Run all the legal moves
         self.legal_moves(AI_turn)
 
-        # With all the children
-        if all:
-            # The initialisation of next state
-            self.children = []
-            # Go through all the legal moves done by the pieces
-            for piece, (move, role) in self.legalMove.items():
-                # Get the piece and initialise the list
-                Piece = self.state[0][piece]
+        # The initialisation of next state
+        self.children = []
+        # Go through all the legal moves done by the pieces
+        for piece, (move, role) in self.legalMove.items():
+            # Get the piece and initialise the death counter
+            piecePlace = self.state[0 if AI_turn else 1][piece]
+            deathCounter = 0
+            # Continue if there is no legal moves for the piece
+            if len(move) == 0:
+                continue
+            # Go through all the places, the legal moves brings the piece
+            for place in move:
                 # Check if a kill condition has been met
-                if abs(Piece[0][0] - move[0]) > 1 or abs(Piece[0][1] - move[1]) > 1:
-                    # For all the moves
-                    for Move in move:
-                        # All the killed pieces
-                        deathPiece = (Piece[0][1] + (Move[0] - Piece[0][0]) // 2, Piece[0][1] + (Move[1] - Piece[0][1]) // 2)
-                # Continue if there is no legal moves for the piece
-                if len(move) == 0:
-                    continue
-                # Go through all the places, the legal moves brings the piece
-                for place in move:
-                    # Update the map to the new place
-                    newState = self.update_places(piece, place, role, AI_turn = AI_turn, death = deathPiece)
-                    # Create the child
-                    child_node = Node(newState, parent = self)
-                    # Append the child in the list
-                    self.children.append(child_node)
-            
-            # Return all the children of the node
-            return self.children
-        # With only on child
-        else:
-            # Calculate the best move
-            self.best_move()
-            # Update the map to the new place
-            newState = self.update_places(self.chosenPiece, self.chosenMove, self.chosenRole, death = self.deathPiece)
-            # Create the child
-            child_node = Node(newState, parent = self)
-            # Append the child in the list
-            self.child = child_node
-
-            # Return child of the node
-            return self.child
+                if abs(piecePlace[0][0] - place[0]) > 1 or abs(piecePlace[0][1] - place[1]) > 1:
+                   deathCounter = (piecePlace[0][1] + (place[0] - piecePlace[0][0]) // 2, piecePlace[0][1] + (place[1] - piecePlace[0][1]) // 2)
+                # Update the map to the new place
+                newState = self.update_places(piece, place, role, AI_turn = AI_turn, death = deathCounter)
+                # Create the child
+                child_node = Node(newState, parent = self)
+                # Append the child in the list
+                self.children.append(child_node)
         
+        # Return all the children of the node
+        return self.children
         
-        
-
     # Determining the best move for the current state
     def best_move(self):
         # Store the already occupied spaces and roles
@@ -332,23 +312,12 @@ class Node:
         priorityList = [tup[1] for tup in bestMove]
         idx = priorityList.index(min(priorityList))
         chosen = bestMove[idx]
-        # The chosen piece
-        self.chosenPiece = list(self.state[0].keys())[idx]
-        # The chosen move
-        self.chosenMove = chosen[2]
-        # The determined role
-        self.chosenRole = self.state[0][self.chosenPiece][1]
-        # Get the piece and initialise the list
-        Piece = self.state[0][self.chosenPiece]
-        # Initialise death counter
-        self.deathPiece = None
-        # Check if a kill condition has been met
-        if abs(Piece[0][0] - self.chosenMove[0]) > 1 or abs(Piece[0][1] - self.chosenMove[1]) > 1:
-            # All the killed pieces
-            self.deathPiece = (Piece[0][0] + (self.chosenMove[0] - Piece[0][0]) // 2, Piece[0][1] + (self.chosenMove[1] - Piece[0][1]) // 2)
-        
+        chosenPiece = list(self.state[0].keys())[idx]
+
         # The heuristic score for minimax
-        self.score = (13 - chosen[1]) + (len(self.state[0]) - len(self.state[1]))
+        score = (13 - chosen[1]) + (len(self.state[0]) - len(self.state[1]))
+
+        return score, (chosenPiece, chosen[2])
     
     # Updating the placement given in the state
     def update_places(self, piece, place, role, AI_turn = True, death = None):
@@ -397,20 +366,22 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
     # If the limited depth has been reached
     if depth == 0 or len(children) == 0:
         # Evalute the heuristic value
-        node.best_move()
+        score, chosen = node.best_move()
 
         # Return the node score
-        return node.score
+        return score, chosen
 
     # If player is max
     if maximizingPlayer:
         # Set alpha to -infinty
         value = float('-inf')
         # Go through every child in the state
-        for child in children:
+        for idx, child in enumerate(children):
             # Evaluate the childs minimax value decide the max value to set alpha
-            eval = H_minimax(child, depth - 1, False, alpha, beta)
-            value = max(value, eval)
+            eval, _ = H_minimax(child, depth - 1, False, alpha, beta)
+            if value < eval:
+                value = eval
+                childIdx = idx
             # Break out of loop if beta is the smaller number
             if value > beta:
                 break
@@ -422,10 +393,12 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
         # Set beta to -infinty
         value = float('inf')
         # Go through every child in the state
-        for child in children:
+        for idx, child in enumerate(children):
             # Evaluate the childs minimax value decide the min value to set beta
-            eval = H_minimax(child, depth - 1, True, alpha, beta)
-            value = min(value, eval)
+            eval, _ = H_minimax(child, depth - 1, True, alpha, beta)
+            if value > eval:
+                value = eval
+                childIdx = idx
             # Break out of loop if alpha is the bigger number
             if value < alpha:
                 break
@@ -433,7 +406,7 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
             beta = min(beta, value)
 
     # Return the final value
-    return value
+    return value, childIdx
 
 if __name__ == "__main__":
     # The initial position of the pieces
@@ -450,7 +423,8 @@ if __name__ == "__main__":
 
     # The original node
     root = Node(start_place)
-    root.generate_child(all = False)
+    theChosenOne, testing = H_minimax(root, 2)    # 2nd argument should be an even number over 0
+    child = root.children[theChosenOne]
     print(root.state)
-    print(root.child.state)
+    print(child.state)
     
