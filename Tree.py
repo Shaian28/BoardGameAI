@@ -21,11 +21,14 @@ class Node:
         enemyOccupancy = [elem[0] for elem in list(self.state[1 if AI_turn else 0].values())]
 
         # List of pieces that can kill
-        killList = []
+        killList = {}
         self.multiKill = []
+        killCondition = False
 
         # Iterate through the pieces and places of the pieces
         for piece, (place, role) in current.items():
+            # When the kill hasn't been detected
+            killCondition = False
             # When it is AI's turn
             if AI_turn:
                 # All the legal movement for man
@@ -75,10 +78,96 @@ class Node:
                             break
                         # Jump over enemy pieces
                         elif idx - len(moveList[piece]) / 2 in enemyCounter:
-                            killList.append((piece, (col, row)))
+                            # If it is the first kill for the piece
+                            if not killCondition:
+                                killList[piece] = []
+                                killCondition = True
+                            # Remember the kill
+                            killList[piece].append((col, row))
         
+        # When pieces can kill
+        if killCondition:
+            # Iterate through the pieces and places of the pieces
+            for piece, (place, role) in current.items():
+                tiles = []
+                allTiles = []
+                if piece in killList.keys():
+                    for addTiles in killList[piece]:
+                        # It only register the first kill
+                        tiles = [addTiles]
+                        killedPiece = [(place[0] + (tiles[-1][0] - place[0]) // 2, place[1] + (tiles[-1][1] - place[1]) // 2)]
+                        jump = True
+                        while jump:
+                            newKill = False
+                            # When it is AI's turn
+                            if AI_turn:
+                                # All the legal movement for man
+                                if role == "Man":
+                                    moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] + 1), (tiles[-1][0] + 1, tiles[-1][1] + 1),
+                                                       (tiles[-1][0] - 2, tiles[-1][1] + 2), (tiles[-1][0] + 2, tiles[-1][1] + 2)]
+                                # All the legal movement for king
+                                elif role == "King":
+                                    moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] - 1), (tiles[-1][0] - 1, tiles[-1][1] + 1),
+                                                       (tiles[-1][0] + 1, tiles[-1][1] - 1), (tiles[-1][0] + 1, tiles[-1][1] + 1),
+                                                       (tiles[-1][0] - 2, tiles[-1][1] - 2), (tiles[-1][0] - 2, tiles[-1][1] + 2),
+                                                       (tiles[-1][0] + 2, tiles[-1][1] - 2), (tiles[-1][0] + 2, tiles[-1][1] + 2)]
+                            # When it is the players turn
+                            else:
+                                # All the legal movement for man
+                                if role == "Man":
+                                    moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] - 1), (tiles[-1][0] + 1, tiles[-1][1] - 1),
+                                                       (tiles[-1][0] - 2, tiles[-1][1] - 2), (tiles[-1][0] + 2, tiles[-1][1] - 2)]
+                                # All the legal movement for king
+                                elif role == "King":
+                                    moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] - 1), (tiles[-1][0] - 1, tiles[-1][1] + 1),
+                                                       (tiles[-1][0] + 1, tiles[-1][1] - 1), (tiles[-1][0] + 1, tiles[-1][1] + 1),
+                                                       (tiles[-1][0] - 2, tiles[-1][1] - 2), (tiles[-1][0] - 2, tiles[-1][1] + 2),
+                                                       (tiles[-1][0] + 2, tiles[-1][1] - 2), (tiles[-1][0] + 2, tiles[-1][1] + 2)]
+                            # Initialise tiles and counters
+                            allyCounter = []
+                            enemyCounter = []
+                            
+                            # Iterate through the rows and coloumns of the piece
+                            for idx, (col, row) in enumerate(moveList[piece]):
+                                # Check if there is no wall blocking
+                                if col > 0 and col < 9 and row > 0 and row < 9:
+                                    # Ignore spaces with ally pieces
+                                    if (col, row) in allyOccupancy:
+                                        allyCounter.append(idx)
+                                    # Ignore spaces with enemy pieces
+                                    elif (col, row) in enemyOccupancy:
+                                        enemyCounter.append(idx)
+
+                                    # For the jumps
+                                    if idx >= len(moveList[piece]) // 2 and (idx not in enemyCounter or idx not in allyCounter):
+                                        # Skip if no kill is allowed
+                                        if (len(enemyCounter) == 0 and role == "Man") or (len(enemyCounter) <= 1 and role == "King"):
+                                            jump = False
+                                            break
+                                        # Jump over enemy pieces
+                                        elif idx - len(moveList[piece]) // 2 in enemyCounter and moveList[piece][idx - len(moveList[piece]) // 2] not in killedPiece:
+                                            killedPiece.append((tiles[-1][0] + (col - tiles[-1][0]) // 2, tiles[-1][1] + (row - tiles[-1][1]) // 2))
+                                            tiles.append((col, row))
+                                            newKill = True
+                                            self.multiKill.append(piece)
+                                    
+                                    if idx  == len(moveList[piece]) - 1 and not newKill:
+                                        jump = False
+                                
+                                if idx == len(moveList[piece]) - 1:
+                                    jump = False
+
+                        allTiles.append(tiles)
+                
+                maxTile = 0
+                finalIdx = 0
+                for idx, choose in enumerate(allTiles):
+                    if len(choose) > maxTile:
+                        finalIdx = idx
+                # Store the legal moves
+                self.legalMove[piece] = [tiles, role] if len(allTiles) == 0 else [allTiles[finalIdx], role]
         # When no pieces can kill
-        if len(killList) == 0:
+        else:
             # Iterate through the pieces and places of the pieces
             for piece, (place, role) in current.items():
                 # Initialise tiles and counters
@@ -107,77 +196,6 @@ class Node:
                         # Append the non-filtered tiles from move set
                         tiles.append((col, row))
 
-                # Store the legal moves
-                self.legalMove[piece] = [tiles, role]
-        else:
-            # Iterate through the pieces and places of the pieces
-            killPiece = [x[0] for x in killList]
-            killTiles = [x[1] for x in killList]
-
-            for piece, (place, role) in current.items():
-                tiles = []
-                if piece in killPiece:
-                    tiles = [killTiles[killPiece.index(piece)]]
-                    jump = True
-                    while jump:
-                        newKill = False
-                        # When it is AI's turn
-                        if AI_turn:
-                            # All the legal movement for man
-                            if role == "Man":
-                                moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] + 1), (tiles[-1][0] + 1, tiles[-1][1] + 1),
-                                                   (tiles[-1][0] - 2, tiles[-1][1] + 2), (tiles[-1][0] + 2, tiles[-1][1] + 2)]
-                            # All the legal movement for king
-                            elif role == "King":
-                                moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] - 1), (tiles[-1][0] - 1, tiles[-1][1] + 1),
-                                                   (tiles[-1][0] + 1, tiles[-1][1] - 1), (tiles[-1][0] + 1, tiles[-1][1] + 1),
-                                                   (tiles[-1][0] - 2, tiles[-1][1] - 2), (tiles[-1][0] - 2, tiles[-1][1] + 2),
-                                                   (tiles[-1][0] + 2, tiles[-1][1] - 2), (tiles[-1][0] + 2, tiles[-1][1] + 2)]
-                        # When it is the players turn
-                        else:
-                            # All the legal movement for man
-                            if role == "Man":
-                                moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] - 1), (tiles[-1][0] + 1, tiles[-1][1] - 1),
-                                                   (tiles[-1][0] - 2, tiles[-1][1] - 2), (tiles[-1][0] + 2, tiles[-1][1] - 2)]
-                            # All the legal movement for king
-                            elif role == "King":
-                                moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] - 1), (tiles[-1][0] - 1, tiles[-1][1] + 1),
-                                                   (tiles[-1][0] + 1, tiles[-1][1] - 1), (tiles[-1][0] + 1, tiles[-1][1] + 1),
-                                                   (tiles[-1][0] - 2, tiles[-1][1] - 2), (tiles[-1][0] - 2, tiles[-1][1] + 2),
-                                                   (tiles[-1][0] + 2, tiles[-1][1] - 2), (tiles[-1][0] + 2, tiles[-1][1] + 2)]
-                        # Initialise tiles and counters
-                        allyCounter = []
-                        enemyCounter = []
-                        
-                        # Iterate through the rows and coloumns of the piece
-                        for idx, (col, row) in enumerate(moveList[piece]):
-                            # Check if there is no wall blocking
-                            if col > 0 and col < 9 and row > 0 and row < 9:
-                                # Ignore spaces with ally pieces
-                                if (col, row) in allyOccupancy:
-                                    allyCounter.append(idx)
-                                # Ignore spaces with enemy pieces
-                                elif (col, row) in enemyOccupancy:
-                                    enemyCounter.append(idx)
-
-                                # For the jumps
-                                if idx >= len(moveList[piece]) / 2 and idx not in enemyCounter or idx not in allyCounter:
-                                    # Skip if no kill is allowed
-                                    if (len(enemyCounter) == 0 and role == "Man") or (len(enemyCounter) <= 1 and role == "King"):
-                                        jump = False
-                                        break
-                                    # Jump over enemy pieces
-                                    elif idx - len(moveList[piece]) / 2 in enemyCounter and (col, row) not in tiles:
-                                        tiles.append((col, row))
-                                        newKill = True
-                                        self.multiKill.append(piece)
-                                
-                                if idx  == len(moveList[piece]) - 1 and not newKill:
-                                    jump = False
-                            
-                            if idx == len(moveList[piece]) - 1:
-                                jump = False
-                            
                 # Store the legal moves
                 self.legalMove[piece] = [tiles, role]
 
@@ -251,7 +269,7 @@ class Node:
                     (-3, 1), (-1, 1), (1, 1), (3, 1),
                     (-2, 2), (0, 2), (2, 2),
                     (-3, 3), (-1, 3), (1, 3), (3, 3)]
-
+        
         # All setups with O as AI and X as opponent (mirrored setups counts)
         # Setup = 1      Setup = 2       Setup = 3       Setup = 4       Setup = 5       Setup = 6       Setup = 7      Setup = 8       Setup = 9        Setup = 10       Setup = 11       Setup = 12       Setup = 13       Setup = 14       Setup = 15       Setup = 16       Setup = 17
         # | | | | | |    | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |     | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |      | | | | | |      |O| | | | |      | | | | | |      | | | | | | 
@@ -263,8 +281,13 @@ class Node:
         #                                                                The right one                                                   Opponent is king There is a wall                                                     The middle one   Same as before
         # Iterate through the pieces and places of the pieces
         for piece, (place, _) in self.state[0].items():
-            if len(self.legalMove[piece][0]) == 0:
-                bestMove.append((0, float('inf'), place))
+            if self.multiKill == piece:
+                legalMove = self.legalMove[piece][0][0]
+            else:
+                legalMove = self.legalMove[piece][0]
+            
+            if len(legalMove) == 0:
+                bestMove.append((0, 0, place))
                 continue
             else:
                 # Initialise counters and setup state for each piece
@@ -274,7 +297,7 @@ class Node:
                 enemyCounterRole = []
                 outOfBound = []
                 setupState = []
-                
+
                 # Scan through the are 3 tiles ahead
                 for (x, y) in scanList:
                     # Getting coloumn and row of the board
@@ -294,39 +317,39 @@ class Node:
                         outOfBound.append((x, y))
                 
                 # Jump forward over an enemy at left side
-                if (place[0] - 2, place[1] + 2) in self.legalMove[piece][0]:
+                if (place[0] - 2, place[1] + 2) in legalMove:
                     # Setup 2
                     if (-1, 1) in enemyCounter:
                         setupState.append((2, 10, (place[0] - 2, place[1] + 2)))
                     # Setup 7
-                    if (-1, 1) in enemyCounter: #...
+                    if (-1, 1) in enemyCounter and piece in self.multiKill:
                         setupState.append((7, 11, (place[0] - 2, place[1] + 2)))
                     # Setup 16
-                    if (-1, 1) in enemyCounter and (1, 1) in enemyCounter and ((-3, 3) in enemyCounter or (-1, 3) in enemyCounter): #...
+                    if (-1, 1) in enemyCounter and (1, 1) in enemyCounter and piece in self.multiKill:
                         setupState.append((16, 12, (place[0] - 2, place[1] + 2)))
                 # Jump forward over an enemy at right side
-                if (place[0] + 2, place[1] + 2) in self.legalMove[piece][0]:
+                if (place[0] + 2, place[1] + 2) in legalMove:
                     # Setup 2
                     if (1, 1) in enemyCounter:
                         setupState.append((2, 10, (place[0] + 2, place[1] + 2)))
                     # Setup 7
-                    if (1, 1) in enemyCounter: #...
+                    if (1, 1) in enemyCounter and piece in self.multiKill:
                         setupState.append((7, 11, (place[0] + 2, place[1] + 2)))
                     # Setup 16
-                    if (-1, 1) in enemyCounter and (1, 1) in enemyCounter and ((3, 3) in enemyCounter or (1, 3) in enemyCounter): #...
+                    if (1, 1) in enemyCounter and (-1, 1) in enemyCounter and piece in self.multiKill:
                         setupState.append((16, 12, (place[0] + 2, place[1] + 2)))
                 # Jump backward over an enemy at left side
-                if (place[0] - 2, place[1] - 2) in self.legalMove[piece][0]:
+                if (place[0] - 2, place[1] - 2) in legalMove:
                     # Setup 2
                     if (-1, -1) in enemyCounter:
                         setupState.append((2, 11, (place[0] - 2, place[1] - 2)))
                 # Jump backward over an enemy at right side
-                if (place[0] + 2, place[1] - 2) in self.legalMove[piece][0]:
+                if (place[0] + 2, place[1] - 2) in legalMove:
                     # Setup 2
                     if (1, -1) in enemyCounter:
                         setupState.append((2, 11, (place[0] + 2, place[1] - 2)))
                 # Move forward at right side
-                if (place[0] - 1, place[1] + 1) in self.legalMove[piece][0]:
+                if (place[0] - 1, place[1] + 1) in legalMove:
                     # Setup 1
                     if (-2, 2) not in enemyCounter and (0, 2) not in enemyCounter:
                         setupState.append((1, 1, (place[0] - 1, place[1] + 1)))
@@ -340,7 +363,7 @@ class Node:
                     if (0, 2) in enemyCounter and (-2, 2) not in enemyCounter and (-2, 0) in allyCounter:
                         setupState.append((5, 3, (place[0] - 1, place[1] + 1)))
                     # Setup 9
-                    if (((-2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((-2, -2))] == "King") or ((0, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((2, -2))] == "King")) and (-2, 2) in enemyCounter:
+                    if (((-2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((-2, -2))] == "King") or ((0, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((2, -2))] == "King")):
                         setupState.append((9, 2, (place[0] - 1, place[1] + 1)))
                     # Setup 10
                     if (1, 1) in enemyCounter and (2, 2) in outOfBound and (-2, 2) not in enemyCounter:
@@ -349,10 +372,10 @@ class Node:
                     if (-2, 2) in outOfBound and (0, 2) in outOfBound and (2, 2) in outOfBound:
                         setupState.append((11, 6, (place[0] - 1, place[1] + 1)))
                     # Setup 12
-                    if (2, 2) in enemyCounter and (0, 2) in enemyCounter and ((-3, 3) in outOfBound and (-1, 3) in outOfBound and (1, 3) in outOfBound and (3, 3) in outOfBound):
+                    if (2, 2) in enemyCounter and ((-3, 3) in outOfBound and (-1, 3) in outOfBound and (1, 3) in outOfBound and (3, 3) in outOfBound):
                         setupState.append((12, 5, (place[0] - 1, place[1] + 1)))
                     # Setup 13
-                    if (1, 1) in enemyCounter and ((-2, 2) in outOfBound or (0, 2) in outOfBound or (2, 2) in outOfBound):
+                    if (1, 1) in enemyCounter and ((-2, 2) in outOfBound and (0, 2) in outOfBound and (2, 2) in outOfBound):
                         setupState.append((13, 9, (place[0] - 1, place[1] + 1)))
                     # Setup 14
                     if (-2, 2) in enemyCounter and (0, 2) in enemyCounter and (-2, 0) in allyCounter and (1, -1) in allyCounter and (2, -2) in outOfBound:
@@ -364,7 +387,7 @@ class Node:
                     if (0, 2) in enemyCounter and (-2, 0) in outOfBound:
                         setupState.append((17, 3, (place[0] - 1, place[1] + 1)))
                 # Move forward at left side
-                if (place[0] + 1, place[1] + 1) in self.legalMove[piece][0]:
+                if (place[0] + 1, place[1] + 1) in legalMove:
                     # Setup 1
                     if (2, 2) not in enemyCounter and (0, 2) not in enemyCounter:
                         setupState.append((1, 1, (place[0] + 1, place[1] + 1)))
@@ -378,7 +401,7 @@ class Node:
                     if (0, 2) in enemyCounter and (2, 2) not in enemyCounter and (2, 0) in allyCounter:
                         setupState.append((5, 3, (place[0] + 1, place[1] + 1)))
                     # Setup 9
-                    if (((-2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((-2, -2))] == "King") or ((0, -2) in enemyCounter  and enemyCounterRole[enemyCounter.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((2, -2))] == "King")) and (2, 2) in enemyCounter:
+                    if (((-2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((-2, -2))] == "King") or ((0, -2) in enemyCounter  and enemyCounterRole[enemyCounter.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((2, -2))] == "King")):
                         setupState.append((9, 2, (place[0] + 1, place[1] + 1)))
                     # Setup 10
                     if (-1, 1) in enemyCounter and (-2, 2) in outOfBound and (2, 2) not in enemyCounter:
@@ -387,10 +410,10 @@ class Node:
                     if (-2, 2) in outOfBound and (0, 2) in outOfBound and (2, 2) in outOfBound:
                         setupState.append((11, 6, (place[0] + 1, place[1] + 1)))
                     # Setup 12
-                    if (-2, 2) in enemyCounter and (0, 2) in enemyCounter and ((-3, 3) in outOfBound and (-1, 3) in outOfBound and (1, 3) in outOfBound and (3, 3) in outOfBound):
+                    if (-2, 2) in enemyCounter and ((-3, 3) in outOfBound and (-1, 3) in outOfBound and (1, 3) in outOfBound and (3, 3) in outOfBound):
                         setupState.append((12, 5, (place[0] + 1, place[1] + 1)))
                     # Setup 13
-                    if (-1, 1) in enemyCounter and ((-2, 2) in outOfBound or (0, 2) in outOfBound or (2, 2) in outOfBound):
+                    if (-1, 1) in enemyCounter and ((-2, 2) in outOfBound and (0, 2) in outOfBound and (2, 2) in outOfBound):
                         setupState.append((13, 9, (place[0] + 1, place[1] + 1)))
                     # Setup 14
                     if (0, 2) in enemyCounter and (2, 2) in enemyCounter and (2, 0) in allyCounter and (-1, -1) in allyCounter and (-2, -2) in outOfBound:
@@ -402,7 +425,7 @@ class Node:
                     if (0, 2) in enemyCounter and (2, 0) in outOfBound:
                         setupState.append((17, 3, (place[0] + 1, place[1] + 1)))
                 # Move backward at left side
-                if (place[0] - 1, place[1] - 1) in self.legalMove[piece][0]:
+                if (place[0] - 1, place[1] - 1) in legalMove:
                     # Setup 1
                     if (-2, -2) not in enemyCounter or (0, -2) not in enemyCounter:
                         setupState.append((1, 1, (place[0] - 1, place[1] - 1)))
@@ -413,7 +436,7 @@ class Node:
                     if ((-2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((-2, -2))] == "Man") or ((0, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((0, -2))] == "Man"):
                         setupState.append((8, 3, (place[0] - 1, place[1] - 1)))
                 # Move backward at right side
-                if (place[0] + 1, place[1] - 1) in self.legalMove[piece][0]:
+                if (place[0] + 1, place[1] - 1) in legalMove:
                     # Setup 1
                     if (2, -2) not in enemyCounter or (0, -2) not in enemyCounter:
                         setupState.append((1, 1, (place[0] + 1, place[1] - 1)))
@@ -426,7 +449,7 @@ class Node:
 
                 # Finding the best move for the piece
                 if len(setupState) == 0:
-                    bestMove.append((0, float('inf'), place))
+                    bestMove.append((0, 0, place))
                 else:
                     tupleList = [tup[1] for tup in setupState]
                     bestMove.append(setupState[tupleList.index(max(tupleList))])
@@ -463,7 +486,6 @@ class Node:
             # Store the already occupied spaces
             allyOccupancy = [elem[0] for elem in list(self.state[0].values())]
             enemyOccupancy = [elem[0] for elem in list(self.state[1].values())]
-            
             for kill in death:
                 # If the death is an ally
                 if kill in allyOccupancy:
@@ -534,6 +556,9 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
             if value > beta:
                 break
             
+            if child.state[0][chosen[0]][0] == chosen[1][2] or chosen[1][0] == 7 or chosen[1][0] == 16:
+                print(chosen)
+
             # Update alpha
             alpha = max(alpha, value)
 
@@ -564,7 +589,7 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
 
 if __name__ == "__main__":
     # The setup prepared for testing
-    setup = 0
+    setup = 17
 
     # The initial position of the pieces
     if setup == 0:
@@ -581,22 +606,22 @@ if __name__ == "__main__":
     # Setup 2
     elif setup == 2:
         start_place = [{"B1": [(4, 3), "Man"]},
-                       {"R1": [(3, 4), "Man"], "R2": [(5, 4), "Man"]}]
+                       {"R1": [(5, 4), "Man"]}]
     # Setup 3
     elif setup == 3:
         start_place = [{"B1": [(4, 3), "Man"]},
-                       {"R1": [(2, 5), "Man"], "R2": [(6, 5), "Man"]}]
+                       {"R1": [(2, 5), "Man"]}]
     # Setup 4
     elif setup == 4:
         start_place = [{"B1": [(4, 3), "Man"]},
-                       {"R1": [(3, 4), "Man"], "R2": [(2, 5), "Man"], "R3": [(5, 4), "Man"], "R4": [(6, 5), "Man"]}]
+                       {"R1": [(3, 4), "Man"], "R2": [(2, 5), "Man"]}]
     # Setup 5
     elif setup == 5:
         start_place = [{"B1": [(4, 3), "Man"], "B2": [(6, 3), "Man"]},
                        {"R1": [(4, 5), "Man"]}]
     # Setup 6
     elif setup == 6:
-        start_place = [{"B1": [(4, 3), "Man"]},
+        start_place = [{"B1": [(4, 3), "King"]},
                        {"R1": [(3, 4), "Man"], "R2": [(2, 5), "Man"], "R3": [(5, 4), "Man"], "R4": [(6, 5), "Man"]}]
     # Setup 7
     elif setup == 7:
