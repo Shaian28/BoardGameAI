@@ -1,4 +1,5 @@
 import copy
+from collections import defaultdict
 
 # Class for all nodes given to a state
 class Node:
@@ -21,14 +22,12 @@ class Node:
         enemyOccupancy = [elem[0] for elem in list(self.state[1 if AI_turn else 0].values())]
 
         # List of pieces that can kill
-        killList = {}
+        killList = defaultdict(list)
         self.multiKill = []
         killCondition = False
 
         # Iterate through the pieces and places of the pieces
         for piece, (place, role) in current.items():
-            # When the kill hasn't been detected
-            killCondition = False
             # When it is AI's turn
             if AI_turn:
                 # All the legal movement for man
@@ -70,7 +69,7 @@ class Node:
                     elif (col, row) in enemyOccupancy:
                         enemyCounter.append(idx)
                         continue
-
+                    
                     # For the jumps
                     if idx >= len(moveList[piece]) / 2:
                         # Skip if no kill is allowed
@@ -78,11 +77,8 @@ class Node:
                             break
                         # Jump over enemy pieces
                         elif idx - len(moveList[piece]) / 2 in enemyCounter:
-                            # If it is the first kill for the piece
-                            if not killCondition:
-                                killList[piece] = []
-                                killCondition = True
                             # Remember the kill
+                            killCondition = True
                             killList[piece].append((col, row))
         
         # When pieces can kill
@@ -137,7 +133,7 @@ class Node:
                                     # Ignore spaces with enemy pieces
                                     elif (col, row) in enemyOccupancy:
                                         enemyCounter.append(idx)
-
+                                    
                                     # For the jumps
                                     if idx >= len(moveList[piece]) // 2 and (idx not in enemyCounter or idx not in allyCounter):
                                         # Skip if no kill is allowed
@@ -151,10 +147,12 @@ class Node:
                                             newKill = True
                                             self.multiKill.append(piece)
                                     
+                                    # When there hasn't been any new kills after the previous kill
                                     if idx  == len(moveList[piece]) - 1 and not newKill:
                                         jump = False
                                 
-                                if idx == len(moveList[piece]) - 1:
+                                # When the index has reached it's final value outside the wall
+                                if idx == len(moveList[piece]) - 1 and not newKill:
                                     jump = False
 
                         allTiles.append(tiles)
@@ -213,7 +211,6 @@ class Node:
             # Continue if there is no legal moves for the piece
             if len(move) == 0:
                 continue
-            
             # For pieces with multiple kills
             if piece in self.multiKill:
                 # Initialise death counter and old placement
@@ -586,83 +583,83 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
 
 if __name__ == "__main__":
     # The setup prepared for testing
-    setup = 0
+    setup = 17
 
     # The initial position of the pieces
     if setup == 0:
         start_place = [{"B1": [(2, 1), "Man"], "B2": [(4, 1), "Man"], "B3": [(6, 1), "Man"], "B4": [(8, 1), "Man"],
                         "B5": [(1, 2), "Man"], "B6": [(3, 2), "Man"], "B7": [(5, 2), "Man"], "B8": [(7, 2), "Man"],
                         "B9": [(2, 3), "Man"], "B10": [(4, 3), "Man"], "B11": [(6, 3), "Man"], "B12": [(8, 3), "Man"]},
-                        {"R1": [(1, 8), "Man"], "R2": [(3, 8), "Man"], "R3": [(5, 8), "Man"], "R4": [(7, 8), "Man"],
+                       {"R1": [(1, 8), "Man"], "R2": [(3, 8), "Man"], "R3": [(5, 8), "Man"], "R4": [(7, 8), "Man"],
                         "R5": [(2, 7), "Man"], "R6": [(4, 7), "Man"], "R7": [(6, 7), "Man"], "R8": [(8, 7), "Man"],
                         "R9": [(1, 6), "Man"], "R10": [(3, 6), "Man"], "R11": [(5, 6), "Man"], "R12": [(7, 6), "Man"]}]
     # Setup 1
     elif setup == 1:
-        start_place = [{"B1": [(4, 3), "Man"]},
+        start_place = [{"B5": [(4, 3), "Man"]},
                        {}]
     # Setup 2
     elif setup == 2:
-        start_place = [{"B1": [(4, 3), "Man"]},
+        start_place = [{"B5": [(4, 3), "Man"]},
                        {"R1": [(5, 4), "Man"]}]
     # Setup 3
     elif setup == 3:
-        start_place = [{"B1": [(4, 3), "Man"]},
+        start_place = [{"B5": [(4, 3), "Man"]},
                        {"R1": [(2, 5), "Man"]}]
     # Setup 4
     elif setup == 4:
-        start_place = [{"B1": [(4, 3), "Man"]},
+        start_place = [{"B5": [(4, 3), "Man"]},
                        {"R1": [(3, 4), "Man"], "R2": [(2, 5), "Man"]}]
     # Setup 5
     elif setup == 5:
-        start_place = [{"B1": [(4, 3), "Man"], "B2": [(6, 3), "Man"]},
+        start_place = [{"B5": [(4, 3), "Man"], "B2": [(6, 3), "Man"]},
                        {"R1": [(4, 5), "Man"]}]
     # Setup 6
     elif setup == 6:
-        start_place = [{"B1": [(4, 3), "King"]},
+        start_place = [{"B5": [(4, 3), "King"]},
                        {"R1": [(3, 4), "Man"], "R2": [(2, 5), "Man"], "R3": [(5, 4), "Man"], "R4": [(6, 5), "Man"]}]
     # Setup 7
     elif setup == 7:
-        start_place = [{"B1": [(4, 3), "Man"]},
+        start_place = [{"B5": [(4, 3), "Man"]},
                        {"R1": [(5, 4), "Man"], "R2": [(5, 6), "Man"]}]
     # Setup 8
     elif setup == 8:
-        start_place = [{"B1": [(4, 5), "King"]},
+        start_place = [{"B5": [(4, 5), "King"]},
                        {"R1": [(6, 3), "Man"]}]
     # Setup 9
     elif setup == 9:
-        start_place = [{"B1": [(4, 5), "King"]},
+        start_place = [{"B5": [(4, 5), "King"]},
                        {"R1": [(6, 3), "King"]}]
     # Setup 10
     elif setup == 10:
-        start_place = [{"B1": [(2, 3), "Man"]},
+        start_place = [{"B5": [(2, 3), "Man"]},
                        {"R1": [(1, 4), "Man"]}]
     # Setup 11
     elif setup == 11:
-        start_place = [{"B1": [(4, 7), "Man"]},
+        start_place = [{"B5": [(4, 7), "Man"]},
                        {}]
     # Setup 12
     elif setup == 12:
-        start_place = [{"B1": [(5, 6), "Man"]},
+        start_place = [{"B5": [(5, 6), "Man"]},
                        {"R1": [(3, 8), "Man"]}]
     # Setup 13
     elif setup == 13:
-        start_place = [{"B1": [(4, 7), "Man"]},
+        start_place = [{"B5": [(4, 7), "Man"]},
                        {"R1": [(3, 8), "Man"]}]
     # Setup 14
     elif setup == 14:
-        start_place = [{"B1": [(2, 5), "Man"], "B2": [(4, 5), "Man"], "B3": [(1, 4), "Man"]},
+        start_place = [{"B5": [(2, 5), "Man"], "B2": [(4, 5), "Man"], "B3": [(1, 4), "Man"]},
                        {"R1": [(2, 7), "Man"], "R2": [(4, 7), "Man"]}]
     # Setup 15
     elif setup == 15:
-        start_place = [{"B1": [(3, 4), "Man"], "B2": [(5, 4), "Man"], "B3": [(2, 3), "Man"], "B4": [(1, 2), "Man"]},
+        start_place = [{"B5": [(3, 4), "Man"], "B2": [(5, 4), "Man"], "B3": [(2, 3), "Man"], "B4": [(1, 2), "Man"]},
                        {"R1": [(3, 6), "Man"], "R2": [(5, 6), "Man"]}]
     # Setup 16
     elif setup == 16:
-        start_place = [{"B1": [(3, 2), "Man"]},
+        start_place = [{"B5": [(3, 2), "Man"]},
                        {"R1": [(2, 3), "Man"], "R2": [(4, 3), "Man"], "R3": [(6, 5), "Man"]}]
     # Setup 17
     elif setup == 17:
-        start_place = [{"B1": [(7, 2), "Man"]},
+        start_place = [{"B5": [(7, 2), "Man"]},
                        {"R1": [(7, 4), "Man"]}]
 
     # The original node
