@@ -555,9 +555,6 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
             # Break out of loop if beta is the smaller number
             if value > beta:
                 break
-            
-            if child.state[0][chosen[0]][0] == chosen[1][2] or chosen[1][0] == 7 or chosen[1][0] == 16:
-                print(chosen)
 
             # Update alpha
             alpha = max(alpha, value)
@@ -589,7 +586,7 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
 
 if __name__ == "__main__":
     # The setup prepared for testing
-    setup = 17
+    setup = 0
 
     # The initial position of the pieces
     if setup == 0:
