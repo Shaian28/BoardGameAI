@@ -12,73 +12,170 @@ class Node:
     # Determine the legal moves for each piece (haven't made a move for consecutive kills)
     def legal_moves(self, AI_turn = True):
         # Copy the current piece placement
-        self.legalMove = copy.deepcopy(self.state[0 if AI_turn else 1])
+        current = self.state[0 if AI_turn else 1]
+        self.legalMove = copy.deepcopy(current)
+        moveList = copy.deepcopy(current)
+        
         # Store the already occupied spaces and roles
-        allyOccupancy = [elem[0] for elem in list(self.state[0 if AI_turn else 1].values())]
+        allyOccupancy = [elem[0] for elem in list(current.values())]
         enemyOccupancy = [elem[0] for elem in list(self.state[1 if AI_turn else 0].values())]
 
+        # List of pieces that can kill
+        killList = []
+        self.multiKill = []
+
         # Iterate through the pieces and places of the pieces
-        for piece, (place, role) in self.state[0 if AI_turn else 1].items():
+        for piece, (place, role) in current.items():
             # When it is AI's turn
             if AI_turn:
                 # All the legal movement for man
                 if role == "Man":
-                    moveList = [(place[0] - 1, place[1] + 1), (place[0] + 1, place[1] + 1),
-                                (place[0] - 2, place[1] + 2), (place[0] + 2, place[1] + 2)]
+                    moveList[piece] = [(place[0] - 1, place[1] + 1), (place[0] + 1, place[1] + 1),
+                                       (place[0] - 2, place[1] + 2), (place[0] + 2, place[1] + 2)]
                 # All the legal movement for king
                 elif role == "King":
-                    moveList = [(place[0] - 1, place[1] - 1), (place[0] - 1, place[1] + 1),
-                                (place[0] + 1, place[1] - 1), (place[0] + 1, place[1] + 1),
-                                (place[0] - 2, place[1] - 2), (place[0] - 2, place[1] + 2),
-                                (place[0] + 2, place[1] - 2), (place[0] + 2, place[1] + 2)]
-                # All the legal movement for dead
-                else:
-                    moveList = []
+                    moveList[piece] = [(place[0] - 1, place[1] - 1), (place[0] - 1, place[1] + 1),
+                                       (place[0] + 1, place[1] - 1), (place[0] + 1, place[1] + 1),
+                                       (place[0] - 2, place[1] - 2), (place[0] - 2, place[1] + 2),
+                                       (place[0] + 2, place[1] - 2), (place[0] + 2, place[1] + 2)]
             # When it is the players turn
             else:
                 # All the legal movement for man
                 if role == "Man":
-                    moveList = [(place[0] - 1, place[1] - 1), (place[0] + 1, place[1] - 1),
-                                (place[0] - 2, place[1] - 2), (place[0] + 2, place[1] - 2)]
+                    moveList[piece] = [(place[0] - 1, place[1] - 1), (place[0] + 1, place[1] - 1),
+                                       (place[0] - 2, place[1] - 2), (place[0] + 2, place[1] - 2)]
                 # All the legal movement for king
                 elif role == "King":
-                    moveList = [(place[0] - 1, place[1] - 1), (place[0] - 1, place[1] + 1),
-                                (place[0] + 1, place[1] - 1), (place[0] + 1, place[1] + 1),
-                                (place[0] - 2, place[1] - 2), (place[0] - 2, place[1] + 2),
-                                (place[0] + 2, place[1] - 2), (place[0] + 2, place[1] + 2)]
-                # All the legal movement for dead
-                else:
-                    moveList = []
-
+                    moveList[piece] = [(place[0] - 1, place[1] - 1), (place[0] - 1, place[1] + 1),
+                                       (place[0] + 1, place[1] - 1), (place[0] + 1, place[1] + 1),
+                                       (place[0] - 2, place[1] - 2), (place[0] - 2, place[1] + 2),
+                                       (place[0] + 2, place[1] - 2), (place[0] + 2, place[1] + 2)]
+                    
             # Initialise tiles and counters
-            tiles = []
             allyCounter = []
             enemyCounter = []
 
             # Iterate through the rows and coloumns of the piece
-            for idx, (col, row) in enumerate(moveList):
+            for idx, (col, row) in enumerate(moveList[piece]):
                 # Check if there is no wall blocking
                 if col > 0 and col < 9 and row > 0 and row < 9:
-                    # Ignore spaces with black pieces
+                    # Ignore spaces with ally pieces
                     if (col, row) in allyOccupancy:
                         allyCounter.append(idx)
                         continue
-                    # Ignore spaces with red pieces
+                    # Ignore spaces with enemy pieces
                     elif (col, row) in enemyOccupancy:
                         enemyCounter.append(idx)
                         continue
 
-                    # Jump over a red pieces
-                    if idx > len(moveList) / 2 - 1 and idx - len(moveList) / 2 not in enemyCounter:
-                        continue
-                    # Don't jump over black pieces
-                    elif idx - len(moveList) / 2 in allyCounter:
-                        continue
-                    # Append the non-filtered tiles from move set
-                    tiles.append((col, row))
+                    # For the jumps
+                    if idx >= len(moveList[piece]) / 2:
+                        # Skip if no kill is allowed
+                        if len(enemyCounter) == 0:
+                            break
+                        # Jump over enemy pieces
+                        elif idx - len(moveList[piece]) / 2 in enemyCounter:
+                            killList.append((piece, (col, row)))
+                    
+        if len(killList) == 0:
+            # Iterate through the pieces and places of the pieces
+            for piece, (place, role) in current.items():
+                # Initialise tiles and counters
+                tiles = []
+                allyCounter = []
+                enemyCounter = []
+                # Iterate through the rows and coloumns of the piece
+                for idx, (col, row) in enumerate(moveList[piece]):
+                    # Check if there is no wall blocking
+                    if col > 0 and col < 9 and row > 0 and row < 9:
+                        # Ignore spaces with ally pieces
+                        if (col, row) in allyOccupancy:
+                            allyCounter.append(idx)
+                            continue
+                        # Ignore spaces with enemy pieces
+                        elif (col, row) in enemyOccupancy:
+                            enemyCounter.append(idx)
+                            continue
+                        
+                        # Jump over enemy pieces
+                        if idx >= len(moveList[piece]) / 2 and idx - len(moveList[piece]) / 2 not in enemyCounter:
+                            continue
+                        # Don't jump over ally pieces
+                        elif idx - len(moveList[piece]) / 2 in allyCounter:
+                            continue
+                        # Append the non-filtered tiles from move set
+                        tiles.append((col, row))
 
-            # Store the legal moves
-            self.legalMove[piece] = [tiles, role]
+                # Store the legal moves
+                self.legalMove[piece] = [tiles, role]
+        else:
+            # Iterate through the pieces and places of the pieces
+            killPiece = [x[0] for x in killList]
+            killTiles = [x[1] for x in killList]
+
+            for piece, (place, role) in current.items():
+                tiles = []
+                if piece in killPiece:
+                    tiles = [killTiles[killPiece.index(piece)]]
+                    jump = True
+                    while jump:
+                        # When it is AI's turn
+                        if AI_turn:
+                            # All the legal movement for man
+                            if role == "Man":
+                                moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] + 1), (tiles[-1][0] + 1, tiles[-1][1] + 1),
+                                                   (tiles[-1][0] - 2, tiles[-1][1] + 2), (tiles[-1][0] + 2, tiles[-1][1] + 2)]
+                            # All the legal movement for king
+                            elif role == "King":
+                                moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] - 1), (tiles[-1][0] - 1, tiles[-1][1] + 1),
+                                                   (tiles[-1][0] + 1, tiles[-1][1] - 1), (tiles[-1][0] + 1, tiles[-1][1] + 1),
+                                                   (tiles[-1][0] - 2, tiles[-1][1] - 2), (tiles[-1][0] - 2, tiles[-1][1] + 2),
+                                                   (tiles[-1][0] + 2, tiles[-1][1] - 2), (tiles[-1][0] + 2, tiles[-1][1] + 2)]
+                        # When it is the players turn
+                        else:
+                            # All the legal movement for man
+                            if role == "Man":
+                                moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] - 1), (tiles[-1][0] + 1, tiles[-1][1] - 1),
+                                                   (tiles[-1][0] - 2, tiles[-1][1] - 2), (tiles[-1][0] + 2, tiles[-1][1] - 2)]
+                            # All the legal movement for king
+                            elif role == "King":
+                                moveList[piece] = [(tiles[-1][0] - 1, tiles[-1][1] - 1), (tiles[-1][0] - 1, tiles[-1][1] + 1),
+                                                   (tiles[-1][0] + 1, tiles[-1][1] - 1), (tiles[-1][0] + 1, tiles[-1][1] + 1),
+                                                   (tiles[-1][0] - 2, tiles[-1][1] - 2), (tiles[-1][0] - 2, tiles[-1][1] + 2),
+                                                   (tiles[-1][0] + 2, tiles[-1][1] - 2), (tiles[-1][0] + 2, tiles[-1][1] + 2)]
+                        # Initialise tiles and counters
+                        allyCounter = []
+                        enemyCounter = []
+                        
+                        # Iterate through the rows and coloumns of the piece
+                        for idx, (col, row) in enumerate(moveList[piece]):
+                            # Check if there is no wall blocking
+                            if col > 0 and col < 9 and row > 0 and row < 9:
+                                # Ignore spaces with ally pieces
+                                if (col, row) in allyOccupancy:
+                                    allyCounter.append(idx)
+                                    continue
+                                # Ignore spaces with enemy pieces
+                                elif (col, row) in enemyOccupancy:
+                                    enemyCounter.append(idx)
+                                    continue
+
+                                # For the jumps
+                                if idx >= len(moveList[piece]) / 2:
+                                    # Skip if no kill is allowed
+                                    if (len(enemyCounter) == 0 and role == "Man") or (len(enemyCounter) <= 1 and role == "King"):
+                                        jump = False
+                                        break
+                                    # Jump over enemy pieces
+                                    elif idx - len(moveList[piece]) / 2 in enemyCounter and (col, row) not in tiles:
+                                        tiles.append((col, row))
+                                        self.multiKill.append(piece)
+                        
+                            if idx == len(moveList[piece]) - 1:
+                                jump = False
+                            
+                # Store the legal moves
+                self.legalMove[piece] = [tiles, role]
 
     # Generate next states of the Node class
     def generate_child(self, AI_turn = True):
@@ -89,23 +186,45 @@ class Node:
         self.children = []
         # Go through all the legal moves done by the pieces
         for piece, (move, role) in self.legalMove.items():
-            # Get the piece and initialise the death counter
-            piecePlace = self.state[0 if AI_turn else 1][piece]
-            deathCounter = 0
+            # Get the piece and initialise
+            piecePlace = self.state[0 if AI_turn else 1][piece][0]
             # Continue if there is no legal moves for the piece
             if len(move) == 0:
                 continue
-            # Go through all the places, the legal moves brings the piece
-            for place in move:
-                # Check if a kill condition has been met
-                if abs(piecePlace[0][0] - place[0]) > 1 or abs(piecePlace[0][1] - place[1]) > 1:
-                   deathCounter = (piecePlace[0][1] + (place[0] - piecePlace[0][0]) // 2, piecePlace[0][1] + (place[1] - piecePlace[0][1]) // 2)
+            
+            # For pieces with multiple kills
+            if piece in self.multiKill:
+                # Initialise death counter and old placement
+                deathCounter = []
+                oldPlace = piecePlace
+                # Go through all the places, the legal moves brings the piece
+                for place in move:
+                    # Check if a kill condition has been met
+                    if abs(oldPlace[0] - place[0]) > 1 and abs(oldPlace[1] - place[1]) > 1:
+                        deathCounter.append((oldPlace[0] + (place[0] - oldPlace[0]) // 2, oldPlace[1] + (place[1] - oldPlace[1]) // 2))
+                    # Update old place
+                    oldPlace = place
                 # Update the map to the new place
-                newState = self.update_places(piece, place, role, AI_turn = AI_turn, death = deathCounter)
+                newState = self.update_places(piece, move[-1], role, AI_turn = AI_turn, death = deathCounter)
                 # Create the child
                 child_node = Node(newState, parent = self)
                 # Append the child in the list
                 self.children.append(child_node)
+            # For pieces without multiple kills
+            else:
+                # Initialise death counter
+                deathCounter = 0
+                # Go through all the places, the legal moves brings the piece
+                for place in move:
+                    # Check if a kill condition has been met
+                    if abs(piecePlace[0] - place[0]) > 1 and abs(piecePlace[1] - place[1]) > 1:
+                        deathCounter = (piecePlace[0] + (place[0] - piecePlace[0]) // 2, piecePlace[1] + (place[1] - piecePlace[1]) // 2)
+                    # Update the map to the new place
+                    newState = self.update_places(piece, place, role, AI_turn = AI_turn, death = [deathCounter])
+                    # Create the child
+                    child_node = Node(newState, parent = self)
+                    # Append the child in the list
+                    self.children.append(child_node)
         
         # Return all the children of the node
         return self.children
@@ -341,16 +460,17 @@ class Node:
             allyOccupancy = [elem[0] for elem in list(self.state[0].values())]
             enemyOccupancy = [elem[0] for elem in list(self.state[1].values())]
             
-            # If the death is an ally
-            if death in allyOccupancy:
-                # Find the piece and replace its role
-                idx = allyOccupancy.index(death)
-                self.newState[0].pop(list(self.state[0].keys())[idx])
-            # If the death is an enemy
-            elif death in enemyOccupancy:
-                # Find the piece and replace its role
-                idx = enemyOccupancy.index(death)
-                self.newState[1].pop(list(self.state[1].keys())[idx])
+            for kill in death:
+                # If the death is an ally
+                if kill in allyOccupancy:
+                    # Find the piece and replace its role
+                    idx = allyOccupancy.index(kill)
+                    self.newState[0].pop(list(self.state[0].keys())[idx])
+                # If the death is an enemy
+                elif kill in enemyOccupancy:
+                    # Find the piece and replace its role
+                    idx = enemyOccupancy.index(kill)
+                    self.newState[1].pop(list(self.state[1].keys())[idx])
         
         # Place the new position and role
         self.newState[0 if AI_turn else 1][piece] = [place, newRole]
@@ -359,7 +479,7 @@ class Node:
         return self.newState
 
 # The H-minimax strategy with aplha-beta pruning (https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning#Pseudocode)
-def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta = float('inf')):
+def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta = float('inf'), handMeDown = 0):
     # Generate the children of the node
     children = node.generate_child(maximizingPlayer)
     
@@ -367,14 +487,17 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
     if depth == 0 or len(children) == 0:
         # Initialize value
         chosen = 0
+        # Calculate the best move
         try:
             score, chosen = node.best_move()
         except:
             score = float('-inf') if maximizingPlayer else float('inf')
-
-        #print((depth, score, node.state))
+        
+        # Add it to the other scores
+        handMeDown += score
+        
         # Return the node score
-        return score, chosen
+        return handMeDown, chosen
     
     # The chosen child
     childIdx = 0
@@ -385,8 +508,19 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
         value = float('-inf')
         # Go through every child in the state
         for idx, child in enumerate(children):
+            # Initialize value
+            chosen = 0
+            # Calculate the best move
+            try:
+                score, chosen = node.best_move()
+            except:
+                score = float('-inf')
+            
+            # Add it to the other scores
+            handMeDown += 0 if node.state[0][chosen[0]] == child.state[0][chosen[0]] else score
+            
             # Evaluate the childs minimax value decide the max value to set alpha
-            eval, _ = H_minimax(child, depth - 1, False, alpha, beta)
+            eval, _ = H_minimax(child, depth - 1, False, alpha, beta, handMeDown)
             if value < eval:
                 value = eval
                 childIdx = idx
@@ -399,7 +533,6 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
             alpha = max(alpha, value)
 
         # Return the final value
-        #print((child, depth, value, node.state))
         return value, childIdx
 
     # If the player is min
@@ -409,7 +542,7 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
         # Go through every child in the state
         for idx, child in enumerate(children):
             # Evaluate the childs minimax value decide the min value to set beta
-            eval, _ = H_minimax(child, depth - 1, True, alpha, beta)
+            eval, _ = H_minimax(child, depth - 1, True, alpha, beta, handMeDown)
             if value > eval:
                 value = eval
                 childIdx = idx
@@ -422,7 +555,6 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
             beta = min(beta, value)
 
         # Return the final value
-        #print((child, depth, value, node.state))
         return value, childIdx
 
 if __name__ == "__main__":
@@ -444,15 +576,8 @@ if __name__ == "__main__":
     step = 2
 
     # Normal minimax operation
-    if step > 0:
-        _, theChosenOne = H_minimax(root, step)
-        child = root.children[theChosenOne]
-        print(root.state)
-        print(child.state)
-    # Only checking the next step
-    else:
-        _, theChosenOne = H_minimax(root, 0)
-        root.update_places(theChosenOne[0], theChosenOne[1], root.state[0][theChosenOne[0]][1])
-        print(root.state)
-        print(root.newState)
+    _, theChosenOne = H_minimax(root, step)
+    child = root.children[theChosenOne]
+    print(root.state)
+    print(child.state)
     
