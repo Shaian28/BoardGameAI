@@ -513,6 +513,13 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
         # Calculate the best move
         try:
             score, chosen = node.best_move()
+        # When no valid moves can be made
+        except:
+            score = float('-inf') if maximizingPlayer else float('inf')
+        
+        # Find out what the difference is in the pieces
+        try:
+            compare_dicts(node.parent.state[0], node.state[0])
         # When the childrens are dead
         except:
             score = float('-inf') if maximizingPlayer else float('inf')
@@ -591,7 +598,7 @@ def compare_dicts(dict1, dict2):
 
 if __name__ == "__main__":
     # The setup prepared for testing
-    setup = 0
+    setup = 17
 
     # The initial position of the pieces
     if setup == 0:
@@ -669,6 +676,10 @@ if __name__ == "__main__":
     elif setup == 17:
         start_place = [{"B5": [(7, 2), "Man"]},
                        {"R1": [(7, 4), "Man"]}]
+    
+    if setup != 0:
+        start_place[0]["B1"] = [(1, 2), "Man"]
+        start_place[0]["B12"] = [(8, 1), "Man"]
 
     # The original node
     root = Node(start_place)
