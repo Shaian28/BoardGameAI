@@ -581,9 +581,17 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
         # Return the final value
         return value, childIdx
 
+# Compare the states of the nodes to get the chosen piece and placement
+def compare_dicts(dict1, dict2):
+    # Go through all the keys
+    for keys in dict1.keys():
+        # Return the key, when there is a difference between the state
+        if dict1[keys] != dict2[keys]:
+            return keys
+
 if __name__ == "__main__":
     # The setup prepared for testing
-    setup = 17
+    setup = 0
 
     # The initial position of the pieces
     if setup == 0:
@@ -670,6 +678,6 @@ if __name__ == "__main__":
     # Normal minimax operation
     _, theChosenOne = H_minimax(root, step)
     child = root.children[theChosenOne]
-    print(root.state)
-    print(child.state)
+    changePiece = compare_dicts(root.state[0], child.state[0])
+    print(str(changePiece) + ":\t" + str(root.state[0][changePiece][0]) + " --> " + str(child.state[0][changePiece][0]))
     
