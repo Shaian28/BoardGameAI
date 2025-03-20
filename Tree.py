@@ -60,7 +60,7 @@ class Node:
             # Iterate through the rows and coloumns of the piece
             for idx, (col, row) in enumerate(moveList[piece]):
                 # Check if there is no wall blocking
-                if col > 0 and col < 9 and row > 0 and row < 9:
+                if col > -1 and col < 8 and row > -1 and row < 8:
                     # Ignore spaces with ally pieces
                     if (col, row) in allyOccupancy:
                         allyCounter.append(idx)
@@ -126,7 +126,7 @@ class Node:
                             # Iterate through the rows and coloumns of the piece
                             for idx, (col, row) in enumerate(moveList[piece]):
                                 # Check if there is no wall blocking
-                                if col > 0 and col < 9 and row > 0 and row < 9:
+                                if col > -1 and col < 8 and row > -1 and row < 8:
                                     # Ignore spaces with ally pieces
                                     if (col, row) in allyOccupancy:
                                         allyCounter.append(idx)
@@ -175,7 +175,7 @@ class Node:
                 # Iterate through the rows and coloumns of the piece
                 for idx, (col, row) in enumerate(moveList[piece]):
                     # Check if there is no wall blocking
-                    if col > 0 and col < 9 and row > 0 and row < 9:
+                    if col > -1 and col < 8 and row > -1 and row < 8:
                         # Ignore spaces with ally pieces
                         if (col, row) in allyOccupancy:
                             allyCounter.append(idx)
@@ -310,7 +310,7 @@ class Node:
                         allyCounter.append((x, y))
                         allyCounterRole.append(allyRole[allyOccupancy.index((col, row))])
                     # The detected walls in the scan area
-                    elif col < 1 or col > 8 or row < 1 or row > 8:
+                    elif col < 0 or col > 7 or row < 0 or row > 7:
                         outOfBound.append((x, y))
                 
                 # Jump forward over an enemy at left side
@@ -468,7 +468,7 @@ class Node:
         self.newState = copy.deepcopy(self.state)
         # Giving the new role
         if AI_turn:
-            if place[1] == 8:
+            if place[1] == 7:
                 newRole = "King"
             else:
                 newRole = role
@@ -598,80 +598,80 @@ if __name__ == "__main__":
 
     # The initial position of the pieces
     if setup == 0:
-        start_place = [{"B1": [(2, 1), "Man"], "B2": [(4, 1), "Man"], "B3": [(6, 1), "Man"], "B4": [(8, 1), "Man"],
-                        "B5": [(1, 2), "Man"], "B6": [(3, 2), "Man"], "B7": [(5, 2), "Man"], "B8": [(7, 2), "Man"],
-                        "B9": [(2, 3), "Man"], "B10": [(4, 3), "Man"], "B11": [(6, 3), "Man"], "B12": [(8, 3), "Man"]},
-                       {"R1": [(1, 8), "Man"], "R2": [(3, 8), "Man"], "R3": [(5, 8), "Man"], "R4": [(7, 8), "Man"],
-                        "R5": [(2, 7), "Man"], "R6": [(4, 7), "Man"], "R7": [(6, 7), "Man"], "R8": [(8, 7), "Man"],
-                        "R9": [(1, 6), "Man"], "R10": [(3, 6), "Man"], "R11": [(5, 6), "Man"], "R12": [(7, 6), "Man"]}]
+        start_place = [{"B1": [(1, 0), "Man"], "B2": [(3, 0), "Man"], "B3": [(5, 0), "Man"], "B4": [(7, 0), "Man"],
+                        "B5": [(0, 1), "Man"], "B6": [(2, 1), "Man"], "B7": [(4, 1), "Man"], "B8": [(6, 1), "Man"],
+                        "B9": [(1, 2), "Man"], "B10": [(3, 2), "Man"], "B11": [(5, 2), "Man"], "B12": [(7, 2), "Man"]},
+                       {"R1": [(0, 7), "Man"], "R2": [(2, 7), "Man"], "R3": [(4, 7), "Man"], "R4": [(6, 7), "Man"],
+                        "R5": [(1, 6), "Man"], "R6": [(3, 6), "Man"], "R7": [(5, 6), "Man"], "R8": [(7, 6), "Man"],
+                        "R9": [(0, 5), "Man"], "R10": [(2, 5), "Man"], "R11": [(4, 5), "Man"], "R12": [(6, 5), "Man"]}]
     # Setup 1
     elif setup == 1:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(1, 8), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(3, 2), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(0, 7), "Man"]}]
     # Setup 2
     elif setup == 2:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(5, 4), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(3, 2), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(4, 3), "Man"]}]
     # Setup 3
     elif setup == 3:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(2, 5), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(3, 2), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(1, 4), "Man"]}]
     # Setup 4
     elif setup == 4:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(3, 4), "Man"], "R2": [(2, 5), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(3, 2), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(2, 3), "Man"], "R2": [(1, 4), "Man"]}]
     # Setup 5
     elif setup == 5:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B2": [(6, 3), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(4, 5), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(3, 2), "Man"], "B2": [(5, 2), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(3, 4), "Man"]}]
     # Setup 6
     elif setup == 6:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "King"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(3, 4), "Man"], "R2": [(2, 5), "Man"], "R3": [(5, 4), "Man"], "R4": [(6, 5), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(3, 2), "King"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(2, 3), "Man"], "R2": [(1, 4), "Man"], "R3": [(4, 3), "Man"], "R4": [(5, 4), "Man"]}]
     # Setup 7
     elif setup == 7:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(5, 4), "Man"], "R2": [(5, 6), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(3, 2), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(4, 3), "Man"], "R2": [(4, 5), "Man"]}]
     # Setup 8
     elif setup == 8:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 5), "King"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(6, 3), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(3, 4), "King"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(5, 2), "Man"]}]
     # Setup 9
     elif setup == 9:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 5), "King"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(6, 3), "King"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(3, 4), "King"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(5, 2), "King"]}]
     # Setup 10
     elif setup == 10:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(2, 3), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(1, 4), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(1, 2), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(0, 3), "Man"]}]
     # Setup 11
     elif setup == 11:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 7), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(1, 8), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(3, 6), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(0, 7), "Man"]}]
     # Setup 12
     elif setup == 12:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(5, 6), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(3, 8), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(4, 5), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(2, 7), "Man"]}]
     # Setup 13
     elif setup == 13:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 7), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(3, 8), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(3, 6), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(2, 7), "Man"]}]
     # Setup 14
     elif setup == 14:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(2, 5), "Man"], "B2": [(4, 5), "Man"], "B3": [(1, 4), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(2, 7), "Man"], "R2": [(4, 7), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(1, 4), "Man"], "B2": [(3, 4), "Man"], "B3": [(0, 3), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(1, 6), "Man"], "R2": [(3, 6), "Man"]}]
     # Setup 15
     elif setup == 15:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(3, 4), "Man"], "B2": [(5, 4), "Man"], "B3": [(2, 3), "Man"], "B4": [(1, 2), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(3, 6), "Man"], "R2": [(5, 6), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(2, 3), "Man"], "B2": [(4, 3), "Man"], "B3": [(1, 2), "Man"], "B4": [(0, 1), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(2, 5), "Man"], "R2": [(4, 5), "Man"]}]
     # Setup 16
     elif setup == 16:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(3, 2), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(2, 3), "Man"], "R2": [(4, 3), "Man"], "R3": [(6, 5), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(2, 1), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(1, 2), "Man"], "R2": [(3, 2), "Man"], "R3": [(5, 4), "Man"]}]
     # Setup 17
     elif setup == 17:
-        start_place = [{"B1": [(1, 2), "Man"], "B5": [(7, 2), "Man"], "B12": [(8, 1), "Man"]},
-                       {"R1": [(7, 4), "Man"]}]
+        start_place = [{"B1": [(0, 1), "Man"], "B5": [(6, 1), "Man"], "B12": [(7, 0), "Man"]},
+                       {"R1": [(6, 3), "Man"]}]
 
     # The original node
     root = Node(start_place)
