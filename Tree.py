@@ -511,7 +511,6 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
         # Initialize value
         chosen = 0
         # Calculate the best move
-        score, chosen = node.best_move()
         try:
             compare_dicts(node.parent.state[0], node.state[0])
             score, chosen = node.best_move()
