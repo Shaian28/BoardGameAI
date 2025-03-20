@@ -426,6 +426,18 @@ class Node:
                     # Setup 1
                     if (-2, -2) not in enemyCounter or (0, -2) not in enemyCounter:
                         setupState.append((1, 1, (place[0] - 1, place[1] - 1)))
+                    # Setup 3
+                    if ((2, 2) in enemyCounter and (0, 2) not in enemyCounter) or (((2, 2) in enemyCounter and (0, 2) not in enemyCounter)):
+                        setupState.append((3, 2, (place[0] - 1, place[1] - 1)))
+                    # Setup 4
+                    if ((1, 1) in enemyCounter and (2, 2) in enemyCounter and (-2, 2) not in enemyCounter) or ((-1, 1) in enemyCounter and (-2, 2) in enemyCounter and (2, 2) not in enemyCounter):
+                        setupState.append((4, 7, (place[0] - 1, place[1] - 1)))
+                    # Setup 9
+                    if (((-2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((-2, -2))] == "King") or ((0, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((2, -2))] == "King")):
+                        setupState.append((9, 2, (place[0] - 1, place[1] - 1)))
+                    # Setup 10
+                    if ((1, 1) in enemyCounter and (2, 2) in outOfBound and (-2, 2) not in enemyCounter) or ((-1, 1) in enemyCounter and (-2, 2) in outOfBound and (2, 2) not in enemyCounter):
+                        setupState.append((10, 7, (place[0] - 1, place[1] - 1)))
                     # Setup 6
                     if (-1, 1) in enemyCounter and (1, 1) in enemyCounter and (-2, 2) in enemyCounter and (2, 2) in enemyCounter:
                         setupState.append((6, 8, (place[0] - 1, place[1] - 1)))
@@ -437,6 +449,18 @@ class Node:
                     # Setup 1
                     if (2, -2) not in enemyCounter or (0, -2) not in enemyCounter:
                         setupState.append((1, 1, (place[0] + 1, place[1] - 1)))
+                    # Setup 3
+                    if ((2, 2) in enemyCounter and (0, 2) not in enemyCounter) or (((2, 2) in enemyCounter and (0, 2) not in enemyCounter)):
+                        setupState.append((3, 2, (place[0] + 1, place[1] - 1)))
+                    # Setup 4
+                    if ((1, 1) in enemyCounter and (2, 2) in enemyCounter and (-2, 2) not in enemyCounter) or ((-1, 1) in enemyCounter and (-2, 2) in enemyCounter and (2, 2) not in enemyCounter):
+                        setupState.append((4, 7, (place[0] + 1, place[1] - 1)))
+                    # Setup 9
+                    if (((-2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((-2, -2))] == "King") or ((0, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((0, -2))] == "King") or ((2, -2) in enemyCounter and enemyCounterRole[enemyCounter.index((2, -2))] == "King")):
+                        setupState.append((9, 2, (place[0] + 1, place[1] - 1)))
+                    # Setup 10
+                    if ((1, 1) in enemyCounter and (2, 2) in outOfBound and (-2, 2) not in enemyCounter) or ((-1, 1) in enemyCounter and (-2, 2) in outOfBound and (2, 2) not in enemyCounter):
+                        setupState.append((10, 7, (place[0] + 1, place[1] - 1)))
                     # Setup 6
                     if (-1, 1) in enemyCounter and (1, 1) in enemyCounter and (-2, 2) in enemyCounter and (2, 2) in enemyCounter:
                         setupState.append((6, 8, (place[0] + 1, place[1] - 1)))
@@ -458,7 +482,7 @@ class Node:
         chosenPiece = list(self.state[0].keys())[idx]
 
         # The heuristic score for minimax
-        score = (13 - chosen[1]) + (len(self.state[0]) - len(self.state[1]))
+        score = chosen[1] + (len(self.state[0]) - len(self.state[1]))
         
         return score, (chosenPiece, chosen)
     
@@ -594,7 +618,7 @@ def compare_dicts(dict1, dict2):
 
 if __name__ == "__main__":
     # The setup prepared for testing
-    setup = 11
+    setup = 17
 
     # The initial position of the pieces
     if setup == 0:
