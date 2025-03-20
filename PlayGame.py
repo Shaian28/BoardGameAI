@@ -14,15 +14,13 @@ def AI_turn(state):
 
 # Determining the player's turn
 def player_turn():
-    print("Choose the piece you want to move as (column, row)")
-    start = input()
-    print("Choose the move you want to make as (column, row)")
-    end = input()
+    start = input("Choose the piece you want to move as (column, row):\n")
+    end = input("Choose the move you want to make as (column, row):\n")
 
-    (sx, sy) = start.split(", ")
+    (sx, sy) = start.split(",")
     (sx, sy) = (int(sx), int(sy))
 
-    (ex, ey) = end.split(", ")
+    (ex, ey) = end.split(",")
     (ex, ey) = (int(ex), int(ey))
 
     return (sx, sy), (ex, ey)
@@ -44,7 +42,9 @@ def update_state():
     return 0
 
 # Test to see the game has ended
-def terminal_test():
+def terminal_test(killCondition, AIPieces, playerPieces):
+    if killCondition > 40 or AIPieces == 0 or playerPieces == 0:
+        return False
     return True
 
 # The board being played on
@@ -61,17 +61,22 @@ initial_state = [{"B1": [(1, 0), "Man"], "B2": [(3, 0), "Man"], "B3": [(5, 0), "
 
 # The game being played
 turn = 0
-while terminal_test():
-    # The AI's turn
-    start, end = AI_turn(initial_state if turn == 0 else update_state())
-    print((start, end))
-    while not move(start, end):
-        start, end = AI_turn(initial_state if turn == 0 else update_state())
-    
-    # The player's turn
-    start, end = player_turn()
-    while not move(start, end):
-        start, end = player_turn()
-    
+kill = 0
+while terminal_test(turn - kill):
     # Updating the turn
     turn += 1
+
+    # The AI's turn
+    AIStart, AIEnd = AI_turn(initial_state if turn == 0 else update_state())
+    while not move(AIStart, AIEnd):
+        AIStart, AIEnd = AI_turn(initial_state if turn == 0 else update_state())
+    
+    # The player's turn
+    playerStart, playerEnd = player_turn()
+    while not move(playerStart, playerEnd):
+        playerStart, playerEnd = player_turn()
+    
+    # Check if a kill happened this turn
+    if AIStart[0] - AIEnd[0] > 2 or AIStart[1] - AIEnd[1] > 2 or playerStart[0] - playerEnd[0] > 2 or playerStart[1] - playerEnd[1] > 2:
+        kill = turn
+    
