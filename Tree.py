@@ -511,16 +511,11 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
         # Initialize value
         chosen = 0
         # Calculate the best move
-        try:
-            score, chosen = node.best_move()
-        # When no valid moves can be made
-        except:
-            score = float('-inf') if maximizingPlayer else float('inf')
-        
-        # Find out what the difference is in the pieces
+        score, chosen = node.best_move()
         try:
             compare_dicts(node.parent.state[0], node.state[0])
-        # When the childrens are dead
+            score, chosen = node.best_move()
+        # When no valid moves can be made
         except:
             score = float('-inf') if maximizingPlayer else float('inf')
         
@@ -543,6 +538,8 @@ def H_minimax(node, depth, maximizingPlayer = True, alpha = float('-inf'), beta 
             chosen = 0
             # Calculate the best move
             try:
+                if node.parent is not None:
+                    compare_dicts(node.parent.state[0], node.state[0])
                 score, chosen = node.best_move()
                 handMeDown += score if child.state[0][chosen[0]][0] == chosen[1][2] else 0
             # When the childrens are dead
@@ -598,7 +595,7 @@ def compare_dicts(dict1, dict2):
 
 if __name__ == "__main__":
     # The setup prepared for testing
-    setup = 17
+    setup = 11
 
     # The initial position of the pieces
     if setup == 0:
@@ -610,76 +607,72 @@ if __name__ == "__main__":
                         "R9": [(1, 6), "Man"], "R10": [(3, 6), "Man"], "R11": [(5, 6), "Man"], "R12": [(7, 6), "Man"]}]
     # Setup 1
     elif setup == 1:
-        start_place = [{"B5": [(4, 3), "Man"]},
-                       {}]
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B12": [(8, 1), "Man"]},
+                       {"R1": [(1, 8), "Man"]}]
     # Setup 2
     elif setup == 2:
-        start_place = [{"B5": [(4, 3), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(5, 4), "Man"]}]
     # Setup 3
     elif setup == 3:
-        start_place = [{"B5": [(4, 3), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(2, 5), "Man"]}]
     # Setup 4
     elif setup == 4:
-        start_place = [{"B5": [(4, 3), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(3, 4), "Man"], "R2": [(2, 5), "Man"]}]
     # Setup 5
     elif setup == 5:
-        start_place = [{"B5": [(4, 3), "Man"], "B2": [(6, 3), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B2": [(6, 3), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(4, 5), "Man"]}]
     # Setup 6
     elif setup == 6:
-        start_place = [{"B5": [(4, 3), "King"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "King"], "B12": [(8, 1), "Man"]},
                        {"R1": [(3, 4), "Man"], "R2": [(2, 5), "Man"], "R3": [(5, 4), "Man"], "R4": [(6, 5), "Man"]}]
     # Setup 7
     elif setup == 7:
-        start_place = [{"B5": [(4, 3), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 3), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(5, 4), "Man"], "R2": [(5, 6), "Man"]}]
     # Setup 8
     elif setup == 8:
-        start_place = [{"B5": [(4, 5), "King"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 5), "King"], "B12": [(8, 1), "Man"]},
                        {"R1": [(6, 3), "Man"]}]
     # Setup 9
     elif setup == 9:
-        start_place = [{"B5": [(4, 5), "King"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 5), "King"], "B12": [(8, 1), "Man"]},
                        {"R1": [(6, 3), "King"]}]
     # Setup 10
     elif setup == 10:
-        start_place = [{"B5": [(2, 3), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(2, 3), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(1, 4), "Man"]}]
     # Setup 11
     elif setup == 11:
-        start_place = [{"B5": [(4, 7), "Man"]},
-                       {}]
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 7), "Man"], "B12": [(8, 1), "Man"]},
+                       {"R1": [(1, 8), "Man"]}]
     # Setup 12
     elif setup == 12:
-        start_place = [{"B5": [(5, 6), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(5, 6), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(3, 8), "Man"]}]
     # Setup 13
     elif setup == 13:
-        start_place = [{"B5": [(4, 7), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(4, 7), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(3, 8), "Man"]}]
     # Setup 14
     elif setup == 14:
-        start_place = [{"B5": [(2, 5), "Man"], "B2": [(4, 5), "Man"], "B3": [(1, 4), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(2, 5), "Man"], "B2": [(4, 5), "Man"], "B3": [(1, 4), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(2, 7), "Man"], "R2": [(4, 7), "Man"]}]
     # Setup 15
     elif setup == 15:
-        start_place = [{"B5": [(3, 4), "Man"], "B2": [(5, 4), "Man"], "B3": [(2, 3), "Man"], "B4": [(1, 2), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(3, 4), "Man"], "B2": [(5, 4), "Man"], "B3": [(2, 3), "Man"], "B4": [(1, 2), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(3, 6), "Man"], "R2": [(5, 6), "Man"]}]
     # Setup 16
     elif setup == 16:
-        start_place = [{"B5": [(3, 2), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(3, 2), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(2, 3), "Man"], "R2": [(4, 3), "Man"], "R3": [(6, 5), "Man"]}]
     # Setup 17
     elif setup == 17:
-        start_place = [{"B5": [(7, 2), "Man"]},
+        start_place = [{"B1": [(1, 2), "Man"], "B5": [(7, 2), "Man"], "B12": [(8, 1), "Man"]},
                        {"R1": [(7, 4), "Man"]}]
-    
-    if setup != 0:
-        start_place[0]["B1"] = [(1, 2), "Man"]
-        start_place[0]["B12"] = [(8, 1), "Man"]
 
     # The original node
     root = Node(start_place)
@@ -690,5 +683,8 @@ if __name__ == "__main__":
     _, theChosenOne = H_minimax(root, step)
     child = root.children[theChosenOne]
     changePiece = compare_dicts(root.state[0], child.state[0])
+
+    # Display the states and transition piece
+    print(root.state)
+    print(child.state)
     print(str(changePiece) + ":\t" + str(root.state[0][changePiece][0]) + " --> " + str(child.state[0][changePiece][0]))
-    
