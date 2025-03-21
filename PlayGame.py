@@ -7,10 +7,10 @@ import checkers as ch
 import Tree
 
 # Determining the AI's turn
-def AI_turn(state, invalidMove = False):
+def AI_turn(state, validMove = True):
     root = Tree.Node(state)
     _, theChosenOne = Tree.H_minimax(root, 4)
-    if invalidMove:
+    if validMove:
         child = root.children[theChosenOne]
     else:
         child = random.choice(root.children)
@@ -133,7 +133,7 @@ while terminal_test(turn - kill, state):
     AIStart, AIEnd = AI_turn(state)
     #while not move(AIStart, AIEnd):
     while not move((AIStart[1], AIStart[0]), (AIEnd[1], AIEnd[0]), state, False):
-        AIStart, AIEnd = AI_turn(state)
+        AIStart, AIEnd = AI_turn(state, False)
 
     # Checking if the game hasn't ended before the turn ends
     state = update_state(board)
