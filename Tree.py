@@ -1,3 +1,4 @@
+# Python libraries
 import copy
 from collections import defaultdict
 
@@ -130,9 +131,11 @@ class Node:
                                     # Ignore spaces with ally pieces
                                     if (col, row) in allyOccupancy:
                                         allyCounter.append(idx)
+                                        continue
                                     # Ignore spaces with enemy pieces
                                     elif (col, row) in enemyOccupancy:
                                         enemyCounter.append(idx)
+                                        continue
                                     
                                     # For the jumps
                                     if idx >= len(moveList[piece]) // 2 and (idx not in enemyCounter or idx not in allyCounter):
@@ -150,10 +153,10 @@ class Node:
                                     # When there hasn't been any new kills after the previous kill
                                     if idx  == len(moveList[piece]) - 1 and not newKill:
                                         jump = False
-                                
-                                # When the index has reached it's final value outside the wall
-                                if idx == len(moveList[piece]) - 1 and not newKill:
-                                    jump = False
+                            
+                            # When the search didn't find new kills
+                            if not newKill:
+                                jump = False
 
                         allTiles.append(tiles)
                 

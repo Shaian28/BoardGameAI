@@ -1,12 +1,19 @@
+# Python libraries
 import numpy as np
+import random
+
+# Our own modules
 import checkers as ch
 import Tree
 
 # Determining the AI's turn
-def AI_turn(state):
+def AI_turn(state, invalidMove = False):
     root = Tree.Node(state)
     _, theChosenOne = Tree.H_minimax(root, 4)
-    child = root.children[theChosenOne]
+    if invalidMove:
+        child = root.children[theChosenOne]
+    else:
+        child = random.choice(root.children)
     changePiece = Tree.compare_dicts(root.state[0], child.state[0])
     currentMove = root.state[0][changePiece][0]
     nextMove = child.state[0][changePiece][0]
@@ -35,6 +42,7 @@ def move(start, end):
         return True
     # When the move is invalid
     else:
+        print((start, end))
         print("Invalid move")
         return False
 
@@ -122,7 +130,6 @@ while terminal_test(turn - kill, state):
 
     # The AI's turn
     AIStart, AIEnd = AI_turn(state)
-    print((AIStart, AIEnd))
     #while not move(AIStart, AIEnd):
     while not move((AIStart[1], AIStart[0]), (AIEnd[1], AIEnd[0])):
         AIStart, AIEnd = AI_turn(state)
