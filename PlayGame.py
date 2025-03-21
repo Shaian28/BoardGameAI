@@ -34,15 +34,15 @@ def player_turn():
     return (sx, sy), (ex, ey)
 
 # Making a move
-def move(start, end):
+def move(start, end, state, player):
+    piecePlaces = [x[0] for x in list(state[1 if player else 0].values())]
     # Check if the move is valid before implementing it
-    if(board.is_valid_move(start, end)):
+    if(board.is_valid_move(start, end)) and (start[1], start[0]) in piecePlaces:
         board.move_piece(start, end)
         board.print_board()
         return True
-    # When the move is invalid
     else:
-        print((start, end))
+        print(((start[1], start[0]), (end[1], end[0])))
         print("Invalid move")
         return False
 
@@ -127,26 +127,32 @@ kill = 0
 while terminal_test(turn - kill, state):
     # Updating the turn
     turn += 1
+    print(f"Turn {turn}\nAI's turn")
 
     # The AI's turn
     AIStart, AIEnd = AI_turn(state)
     #while not move(AIStart, AIEnd):
-    while not move((AIStart[1], AIStart[0]), (AIEnd[1], AIEnd[0])):
+    while not move((AIStart[1], AIStart[0]), (AIEnd[1], AIEnd[0]), state, False):
         AIStart, AIEnd = AI_turn(state)
 
+    # Checking if the game hasn't ended before the turn ends
+    state = update_state(board)
     if not terminal_test(turn - kill, state):
         break
+    
+    # Displaying the turn number
+    print(f"Turn {turn}\nPlayer's turn")
     
     # The player's turn
     playerStart, playerEnd = player_turn()
     #while not move(playerStart, playerEnd):
-    while not move((playerStart[1], playerStart[0]), (playerEnd[1], playerEnd[0])):
+    while not move((playerStart[1], playerStart[0]), (playerEnd[1], playerEnd[0]), state, True):
         playerStart, playerEnd = player_turn()
     
     # Check if a kill happened this turn
     if abs(AIStart[0] - AIEnd[0]) > 1 or abs(AIStart[1] - AIEnd[1]) > 1 or abs(playerStart[0] - playerEnd[0]) > 1 or abs(playerStart[1] - playerEnd[1]) > 1:
         kill = turn
+        print(kill)
     
     # Updating the state
     state = update_state(board)
-    
