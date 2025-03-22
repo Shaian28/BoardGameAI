@@ -141,7 +141,7 @@ kill = 0
 while terminal_test(turn - kill, state):
     # Updating the turn
     turn += 1
-    print(f"Turn {turn}\nAI's turn")
+    print(f"Turn {turn}:\tAI's turn")
 
     # The AI's turn
     AIStart, AIEnd = AI_turn(state)
@@ -154,7 +154,7 @@ while terminal_test(turn - kill, state):
         break
     
     # Displaying the turn number
-    print(f"Turn {turn}\nPlayer's turn")
+    print(f"Turn {turn}:\tPlayer's turn")
     
     # The player's turn
     playerStart, playerEnd = player_turn()
@@ -164,7 +164,6 @@ while terminal_test(turn - kill, state):
     # Check if a kill happened this turn
     if abs(AIStart[0] - AIEnd[0]) > 1 or abs(AIStart[1] - AIEnd[1]) > 1 or abs(playerStart[0] - playerEnd[0]) > 1 or abs(playerStart[1] - playerEnd[1]) > 1:
         kill = turn
-        print(kill)
     
     # Updating the state
     state = update_state(board)

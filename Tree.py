@@ -486,7 +486,11 @@ class Node:
 
         # The heuristic score for minimax
         rolePoint = sum([1 if elem == "Man" else 2 for elem in allyRole]) - sum([1 if elem == "Man" else 2 for elem in enemyRole])
-        score = chosen[1] +  rolePoint
+        if  chosen[0] == 2 or chosen[0] == 11 or chosen[0] == 13:
+            rolePoint += 1
+        elif chosen[0] == 7 or chosen == 16:
+            rolePoint += len(self.legalMove)
+        score = chosen[1] + rolePoint
         
         return score, (chosenPiece, chosen)
     
