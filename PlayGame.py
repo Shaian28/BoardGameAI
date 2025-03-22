@@ -8,42 +8,56 @@ import Tree
 
 # Determining the AI's turn
 def AI_turn(state, validMove = True):
+    # The root of the tree
     root = Tree.Node(state)
+    # The depth.limited minimax with depth 4 (2 turns)
     _, theChosenOne = Tree.H_minimax(root, 4)
-    if validMove:
-        child = root.children[theChosenOne]
-    else:
-        child = random.choice(root.children)
+    # The chosen child for the next move
+    child = root.children[theChosenOne] if validMove else random.choice(root.children)
+    # The piece that was changed
     changePiece = Tree.compare_dicts(root.state[0], child.state[0])
+    # The current and next move
     currentMove = root.state[0][changePiece][0]
-    nextMove = child.state[0][changePiece][0]
+    nextMove = child.state[0][changePiece][0] if len(root.multiKill) == 0 else root.legalMove[changePiece][0]
 
-    return currentMove, nextMove
+    # Returnung the current and next move
+    return (currentMove[1], currentMove[0]), (nextMove[1], nextMove[0])#currentMove, nextMove
 
 # Determining the player's turn
 def player_turn():
+    # Getting the start and end move
     start = input("Choose the piece you want to move as (column, row):\n")
     end = input("Choose the move you want to make as (column, row):\n")
 
+    # Get the start move as a tuple
     (sx, sy) = start.split(",")
     (sx, sy) = (int(sx), int(sy))
 
+    # Get the end move as a tuple
     (ex, ey) = end.split(",")
     (ex, ey) = (int(ex), int(ey))
 
-    return (sx, sy), (ex, ey)
+    # Return the start and end move
+    return (sy, sx), (ey, ex)#(sx, sy), (ex, ey)
 
 # Making a move
 def move(start, end, state, player):
+    # Get all the placement of the pieces of either AI or player
     piecePlaces = [x[0] for x in list(state[1 if player else 0].values())]
     # Check if the move is valid before implementing it
     if(board.is_valid_move(start, end)) and (start[1], start[0]) in piecePlaces:
+        # Move the piece and update the board
         board.move_piece(start, end)
         board.print_board()
+
+        # Tell the game that the move is valid
         return True
+    # When the move isn't valid
     else:
-        print(((start[1], start[0]), (end[1], end[0])))
-        print("Invalid move")
+        # Tell which move is invalid
+        print(f"{(start[1], start[0])} --> {(end[1], end[0])} is an invalid move")
+
+        # Tell the game that the move is invalid
         return False
 
 # Updating the pieces setup and role for the AI
@@ -131,8 +145,7 @@ while terminal_test(turn - kill, state):
 
     # The AI's turn
     AIStart, AIEnd = AI_turn(state)
-    #while not move(AIStart, AIEnd):
-    while not move((AIStart[1], AIStart[0]), (AIEnd[1], AIEnd[0]), state, False):
+    while not move(AIStart, AIEnd, state, False):
         AIStart, AIEnd = AI_turn(state, False)
 
     # Checking if the game hasn't ended before the turn ends
@@ -145,8 +158,7 @@ while terminal_test(turn - kill, state):
     
     # The player's turn
     playerStart, playerEnd = player_turn()
-    #while not move(playerStart, playerEnd):
-    while not move((playerStart[1], playerStart[0]), (playerEnd[1], playerEnd[0]), state, True):
+    while not move(playerStart, playerEnd, state, True):
         playerStart, playerEnd = player_turn()
     
     # Check if a kill happened this turn

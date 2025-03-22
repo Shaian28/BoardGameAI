@@ -485,7 +485,8 @@ class Node:
         chosenPiece = list(self.state[0].keys())[idx]
 
         # The heuristic score for minimax
-        score = chosen[1] + (len(self.state[0]) - len(self.state[1]))
+        rolePoint = sum([1 if elem == "Man" else 2 for elem in allyRole]) - sum([1 if elem == "Man" else 2 for elem in enemyRole])
+        score = chosen[1] +  rolePoint
         
         return score, (chosenPiece, chosen)
     
