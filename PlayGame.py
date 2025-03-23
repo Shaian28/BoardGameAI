@@ -115,7 +115,7 @@ def terminal_test(killCondition, nodeState):
     if killCondition > 40 or AIPieces == 0 or playerPieces == 0 or AILegalMove == 0 or playerLegalMove == 0:
         if killCondition > 40 or AILegalMove == 0 or playerLegalMove == 0:
             print("The game is a draw")
-        elif playerPieces == 0:
+        elif AIPieces == 0:
             print("The AI won")
         elif playerPieces == 0:
             print("You won")
