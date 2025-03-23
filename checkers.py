@@ -29,7 +29,7 @@ class Checkers:
         piece = self.board[x1, y1]
         if piece == " " or self.board[x2, y2] != " ":
             return False  # Must move a piece and land on an empty square
-
+        
         direction = 1 if piece.lower() == "b" else -1  # Normal move direction
         is_king = piece.isupper()
 
@@ -88,21 +88,21 @@ class Checkers:
     def get_player_input(self):
         while True:
             try:
-                move = input(f"{self.current_player}'s turn (format: x1 y1 x2 y2): ").split()
+                move = input(f"Type your move (Format: StartRow StartColumn EndRow EndColumn): ").split()
                 if len(move) != 4:
                     raise ValueError("Invalid input format!")
                 start, end = (int(move[0]), int(move[1])), (int(move[2]), int(move[3]))
                 if self.is_valid_move(start, end):
                     return start, end
                 else:
-                    print("Invalid move! Try again.")
+                    print(f"{start} --> {end} is an invalid move")
             except ValueError as e:
                 print(e)
 
     def get_player_input_single(self, start):
         while True:
             try:
-                move = input(f"Continue jump from {start} (format: x2 y2): ").split()
+                move = input(f"Continue jump from {start} (format: EndRow EndColumn): ").split()
                 if len(move) != 2:
                     raise ValueError("Invalid input format!")
                 end = (int(move[0]), int(move[1]))
