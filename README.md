@@ -7,10 +7,9 @@ To run the game, open bash terminal, go to the directory with `cd` and type the 
 The bash terminal will then display a checkerboard with the pieces, with `b` as black piece for man `B` as black piece for king, `r` as red piece for man and `R` as red piece for king. The AI controls the black pieces and the player will control the red pieces.
 
 The first is done by the AI and will shortly update once the AI is done thinking. The input will now appear for the player with the following line in the bash terminal:\
-`Choose the piece you want to move as (column, row):`\
-This message means that you have to choose the red piece, that you want to move. If the red piece is in column 2 and row 5, then type `2, 5`, with comma seperating the input. Then the next line will appear in the bash terminal:\
-`Choose the move you want to make as (column, row):`\
-This message mean that you to choose where the red piece should land. If the red piece should go to coloumn 3 and row 4, them type `3, 4`, with comma seperating the input.
+`Move a piece (Format: Row1 Column2 Row1 Column1 ...): `\
+This message means that you have to choose the red piece, that you want to move and place it in the square you want to be in. If multiple kills happens, then also include the in between steps.\
+If the red piece is in row 5 and column 2 and you want to move the piece to row 4 and column 3, then type `5 2 4 3`. If multiple kills happens from row 5 and column 2 to row 3 and column 0 and then again to row 1 column 2, then type `5 2 3 0 1 2`.
 
-The board will process to see if the move is valid. If invalid, the bash terminal will claim `Invalid move` and the previous sentences will repeat.\
+The board will process to see if the move is valid. If invalid, the bash terminal will claim `Invalid move! Try again.` and the previous sentence will repeat.\
 If everything goes as it should, then the board will update with the new placement of the piece.

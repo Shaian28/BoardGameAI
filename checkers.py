@@ -74,7 +74,7 @@ class Checkers:
     def get_player_input(self):
         while True:
             try:
-                move = input(f"Move a piece (Format: StartRow StartColumn EndRow EndColumn): ").split()
+                move = input(f"Move a piece (Format: Row1 Column1 Row2 Column2 ...): ").split()
                 if len(move) < 4 or len(move) % 2 != 0:
                     raise ValueError("Invalid input format!")
                 path = [(int(move[i]), int(move[i + 1])) for i in range(0, len(move), 2)]
