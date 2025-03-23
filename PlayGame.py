@@ -26,10 +26,10 @@ def AI_turn(state, validMove = True):
         return (currentMove[1], currentMove[0]), (nextMove[1], nextMove[0])
     # When there are multiple kills
     else:
-        nextMove = [(b, a) for a, b in root.legalMove[changePiece][0]]
+        nextMove = tuple((b, a) for a, b in root.legalMove[changePiece][0])
         
         # Returnung the current and next move
-        return (currentMove[1], currentMove[0]), nextMove
+        return ((currentMove[1], currentMove[0]),) + nextMove
 
 # Updating the pieces setup and role for the AI
 def update_state(checker):
@@ -115,13 +115,13 @@ while terminal_test(turn - kill, state):
     print(f"Turn {turn}:\tAI's turn")
 
     # The AI's turn
-    AIStart, AIEnd = AI_turn(state)
-    print(AIEnd)
+    AIPath = AI_turn(state)
     piecePlaces = [x[0] for x in list(state[0].values())]
-    while (AIStart[1], AIStart[0]) not in piecePlaces:
-        print("Not your piece")
-        AIStart, AIEnd = AI_turn(state, False)
-    board.move_piece((AIStart, AIEnd))
+    while not board.is_valid_move(AIPath) or (AIPath[0][1], AIPath[0][0]) not in piecePlaces:
+        if (playerPath[0][1], playerPath[0][0]) not in piecePlaces:
+            print("Not your piece")
+        AIPath = AI_turn(state, False)
+    board.move_piece(AIPath)
 
     # Checking if the game hasn't ended before the turn ends
     state = update_state(board)
@@ -135,17 +135,15 @@ while terminal_test(turn - kill, state):
     print(f"Turn {turn}:\tPlayer's turn")
     
     # The player's turn
-    playerStart, playerEnd = board.get_player_input()
+    playerPath = board.get_player_input()
     piecePlaces = [x[0] for x in list(state[1].values())]
-    while (playerStart[1], playerStart[0]) not in piecePlaces:
+    while (playerPath[0][1], playerPath[0][0]) not in piecePlaces:
         print("Not your piece")
-        playerStart, playerEnd = board.get_player_input()
-    board.move_piece((playerStart, playerEnd))
+        playerPath = board.get_player_input()
+    board.move_piece(playerPath)
     
     # Check if a kill happened this turn
-    AIEnd = AIEnd[-1] if type(AIEnd) == list else AIEnd
-    print(AIEnd)
-    if abs(AIStart[0] - AIEnd[0]) > 1 or abs(AIStart[1] - AIEnd[1]) > 1 or abs(playerStart[0] - playerEnd[0]) > 1 or abs(playerStart[1] - playerEnd[1]) > 1:
+    if abs(AIPath[0][0] - AIPath[-1][0]) > 1 or abs(AIPath[0][1] - AIPath[-1][1]) > 1 or abs(playerPath[0][0] - playerPath[-1][0]) > 1 or abs(playerPath[0][1] - playerPath[-1][1]) > 1:
         kill = turn
     
     # Updating the state
