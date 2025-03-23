@@ -56,6 +56,7 @@ class Checkers:
         x1, y1 = path[0]
         piece = self.board[x1, y1]
         self.board[x1, y1] = " "
+        path = path[1] if type(path[1]) == list else path
 
         for i in range(1, len(path)):
             x2, y2 = path[i]
@@ -73,7 +74,7 @@ class Checkers:
     def get_player_input(self):
         while True:
             try:
-                move = input(f"{self.current_player}'s turn (format: x1 y1 x2 y2 ...): ").split()
+                move = input(f"Move a piece (Format: StartRow StartColumn EndRow EndColumn): ").split()
                 if len(move) < 4 or len(move) % 2 != 0:
                     raise ValueError("Invalid input format!")
                 path = [(int(move[i]), int(move[i + 1])) for i in range(0, len(move), 2)]

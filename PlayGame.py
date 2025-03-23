@@ -18,10 +18,18 @@ def AI_turn(state, validMove = True):
     changePiece = Tree.compare_dicts(root.state[0], child.state[0])
     # The current and next move
     currentMove = root.state[0][changePiece][0]
-    nextMove = child.state[0][changePiece][0] if len(root.multiKill) == 0 else root.legalMove[changePiece][0]
-
-    # Returnung the current and next move
-    return (currentMove[1], currentMove[0]), (nextMove[1], nextMove[0])
+    # When there is a normal move or only single kill
+    if len(root.multiKill) == 0:
+        nextMove = child.state[0][changePiece][0]
+        
+        # Returnung the current and next move
+        return (currentMove[1], currentMove[0]), (nextMove[1], nextMove[0])
+    # When there are multiple kills
+    else:
+        nextMove = [(b, a) for a, b in root.legalMove[changePiece][0]]
+        
+        # Returnung the current and next move
+        return (currentMove[1], currentMove[0]), nextMove
 
 # Updating the pieces setup and role for the AI
 def update_state(checker):
@@ -108,11 +116,12 @@ while terminal_test(turn - kill, state):
 
     # The AI's turn
     AIStart, AIEnd = AI_turn(state)
+    print(AIEnd)
     piecePlaces = [x[0] for x in list(state[0].values())]
     while (AIStart[1], AIStart[0]) not in piecePlaces:
         print("Not your piece")
         AIStart, AIEnd = AI_turn(state, False)
-    board.move_piece(AIStart, AIEnd)
+    board.move_piece((AIStart, AIEnd))
 
     # Checking if the game hasn't ended before the turn ends
     state = update_state(board)
@@ -131,9 +140,11 @@ while terminal_test(turn - kill, state):
     while (playerStart[1], playerStart[0]) not in piecePlaces:
         print("Not your piece")
         playerStart, playerEnd = board.get_player_input()
-    board.move_piece(playerStart, playerEnd)
+    board.move_piece((playerStart, playerEnd))
     
     # Check if a kill happened this turn
+    AIEnd = AIEnd[-1] if type(AIEnd) == list else AIEnd
+    print(AIEnd)
     if abs(AIStart[0] - AIEnd[0]) > 1 or abs(AIStart[1] - AIEnd[1]) > 1 or abs(playerStart[0] - playerEnd[0]) > 1 or abs(playerStart[1] - playerEnd[1]) > 1:
         kill = turn
     
