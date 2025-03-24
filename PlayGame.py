@@ -50,16 +50,22 @@ def update_state(checker):
     redState = {}
 
     # Giving each key the right value
+    EndIdxB = None
+    EndIdxR = None
     for idx, place in enumerate(blackMan):
         blackState[f"B{idx + 1}"] = [place, "Man"]
-        endIdx = idx
+        EndIdxB = idx
+    if EndIdxB == None:
+        EndIdxB = 0
     for idx, place in enumerate(blackKing):
-        blackState[f"B{idx + endIdx}"] = [place, "King"]
+        blackState[f"B{idx + 2 + EndIdxB}"] = [place, "King"]
     for idx, place in enumerate(redMan):
         redState[f"R{idx + 1}"] = [place, "Man"]
-        endIdx = idx
+        EndIdxR = idx
+    if EndIdxR == None:
+        EndIdxR = 0
     for idx, place in enumerate(redKing):
-        redState[f"R{idx + endIdx}"] = [place, "King"]
+        redState[f"R{idx + 2 + EndIdxR}"] = [place, "King"]
     
     # Making the state
     state = [blackState, redState]
@@ -78,18 +84,24 @@ def terminal_test(killCondition, nodeState):
 
     # All the legal moves
     node.legal_moves(True)
-    AILegalMove = len(node.legalMove)
+    AILegalMove = len([elem[0] for elem in list(node.legalMove.values()) if elem[0]])
     node.legal_moves(False)
-    playerLegalMove = len(node.legalMove)
+    playerLegalMove = len([elem[0] for elem in list(node.legalMove.values()) if elem[0]])
 
     # The condition for terminal game
     if killCondition > 40 or AIPieces == 0 or playerPieces == 0 or AILegalMove == 0 or playerLegalMove == 0:
-        if killCondition > 40 or AILegalMove == 0 or playerLegalMove == 0:
-            print("The game is a draw")
-        elif AIPieces == 0:
-            print("The AI won")
-        elif playerPieces == 0:
+        if AIPieces == 0:
             print("You won")
+        elif playerPieces == 0:
+            print("The AI won")
+        else:
+            print("The game is a draw")
+            if killCondition > 40:
+                print("There hasn't been a kill in 40 turns")
+            elif AILegalMove == 0:
+                print("No more valid moves left for the AI")
+            elif playerLegalMove == 0:
+                print("No more valid moves left for you")
         
         # End the game
         return False
@@ -118,7 +130,7 @@ while terminal_test(turn - kill, state):
     AIPath = AI_turn(state)
     piecePlaces = [x[0] for x in list(state[0].values())]
     while not board.is_valid_move(AIPath) or (AIPath[0][1], AIPath[0][0]) not in piecePlaces:
-        if (playerPath[0][1], playerPath[0][0]) not in piecePlaces:
+        if (AIPath[0][1], AIPath[0][0]) not in piecePlaces:
             print("Not your piece")
         AIPath = AI_turn(state, False)
     board.move_piece(AIPath)

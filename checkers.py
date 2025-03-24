@@ -28,6 +28,8 @@ class Checkers:
             x1, y1 = path[i]
             x2, y2 = path[i + 1]
             piece = self.board[x1, y1]
+            if (x1 < 0 or x1 > 7 or y1 < 0 or y1 > 7) or (x2 < 0 or x2 > 7 or y2 < 0 or y2 > 7):
+                return False
             if piece == " " or self.board[x2, y2] != " ":
                 return False  # Must move a piece and land on an empty square
 
@@ -35,7 +37,7 @@ class Checkers:
             is_king = piece.isupper()
 
             # One-step move for kings (forward and backward, per American rules)
-            if abs(x2 - x1) == 1 and abs(y2 - y1) == 1:
+            if abs(x2 - x1) == 1 and abs(y2 - y1) == 1 and i == 0:
                 if is_king or (x2 - x1 == direction):
                     continue  # Simple move forward
                 else:
@@ -55,6 +57,8 @@ class Checkers:
                     continue  # Valid capture
                 else:
                     return False
+            elif i != 0:
+                self.board[x1, y1] = " "
             return False
         return True
 
